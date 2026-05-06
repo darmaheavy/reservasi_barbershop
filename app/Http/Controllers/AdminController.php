@@ -63,7 +63,6 @@ class AdminController extends Controller
             'nama'       => $request->nama,
             'harga'      => $request->harga,
             'deskripsi'  => $request->deskripsi,
-            // Simpan NULL jika input kosong atau teks 'KOSONG'
             'icon'       => (empty($request->icon) || $request->icon === 'KOSONG') ? null : $request->icon,
             'created_at' => now(),
             'updated_at' => now(),
@@ -102,7 +101,6 @@ class AdminController extends Controller
     {
         $today = Carbon::today()->toDateString();
 
-        // Menyesuaikan kolom 'tanggal' dan 'jam' sesuai tabel bookings
         $antrian = Booking::whereDate('tanggal', $today)
             ->whereIn('status', ['pending', 'confirmed'])
             ->orderBy('jam', 'asc')
@@ -128,7 +126,6 @@ class AdminController extends Controller
         $bulan = $request->bulan ?? Carbon::now()->month;
         $tahun = $request->tahun ?? Carbon::now()->year;
 
-        // Sinkronisasi Join antara tabel bookings dan layanan
         $totalPendapatan = DB::table('bookings')
             ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
             ->whereMonth('bookings.tanggal', $bulan)
@@ -141,7 +138,6 @@ class AdminController extends Controller
             ->where('status', 'confirmed')
             ->count();
 
-        // Per layanan
         $perLayanan = DB::table('bookings')
             ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
             ->whereMonth('bookings.tanggal', $bulan)
@@ -152,8 +148,31 @@ class AdminController extends Controller
             ->orderByDesc('total')
             ->get();
 
+        // ✅ PERBAIKAN: nama_pelanggan -> nama (sesuai kolom di tabel bookings)
+        $detailTransaksi = DB::table('bookings')
+            ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
+            ->whereMonth('bookings.tanggal', $bulan)
+            ->whereYear('bookings.tanggal', $tahun)
+            ->where('bookings.status', 'confirmed')
+            ->selectRaw('bookings.nama as name, bookings.layanan as service, bookings.tanggal as date, layanan.harga')
+            ->orderByDesc('bookings.tanggal')
+            ->limit(10)
+            ->get();
+
+        // ✅ Grafik harian
+        $grafikHarian = DB::table('bookings')
+            ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
+            ->whereMonth('bookings.tanggal', $bulan)
+            ->whereYear('bookings.tanggal', $tahun)
+            ->where('bookings.status', 'confirmed')
+            ->selectRaw('DATE(bookings.tanggal) as tanggal, SUM(layanan.harga) as total')
+            ->groupBy(DB::raw('DATE(bookings.tanggal)'))
+            ->orderBy('tanggal')
+            ->get();
+
         return view('admin.laporan', compact(
-            'bulan', 'tahun', 'totalPendapatan', 'totalReservasi', 'perLayanan'
+            'bulan', 'tahun', 'totalPendapatan', 'totalReservasi', 'perLayanan',
+            'detailTransaksi', 'grafikHarian'
         ));
     }
 
