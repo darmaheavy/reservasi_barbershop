@@ -38,7 +38,7 @@
             </div>
         </div>
 
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             <p class="text-gray-600 text-xs font-semibold uppercase tracking-wider px-3 mb-2">Menu Utama</p>
 
             <a href="{{ route('admin.dashboard') }}"
@@ -73,8 +73,9 @@
                 Laporan
             </a>
 
+            {{-- ✅ DITAMBAHKAN: menu Status --}}
             <a href="{{ route('admin.status') }}"
-               class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#EAB308]">
+               class="sidebar-link {{ request()->routeIs('admin.status') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('admin.status') ? 'text-[#EAB308]' : 'text-gray-400' }}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 Status
             </a>
