@@ -4,14 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB; // Tambahkan ini untuk akses DB
 use App\Models\Booking;
 
 class BookingController extends Controller
 {
-    // ✅ tampilkan form booking
+    // ✅ tampilkan form booking dengan data layanan dinamis
     public function create()
     {
-        return view('user.booking');
+        // Ambil semua data dari tabel layanan agar muncul di dropdown form
+        $layanan = DB::table('layanan')->get();
+
+        // Kirim variabel $layanan ke view user.booking
+        return view('user.booking', compact('layanan'));
     }
 
     // ✅ simpan data dari form
@@ -26,18 +31,18 @@ class BookingController extends Controller
             'whatsapp' => 'required|string|max:20',
         ]);
 
-        // ✅ simpan ke database
+        // ✅ simpan ke database (pastikan Model Booking sudah diarahkan ke tabel 'bookings')
         Booking::create([
             'user_id' => Auth::id(),
             'nama' => $validated['nama'],
-            'layanan' => $validated['layanan'],
+            'layanan' => $validated['layanan'], // Ini akan berisi nama layanan yang dipilih user
             'tanggal' => $validated['tanggal'],
             'jam' => $validated['jam'],
             'whatsapp' => $validated['whatsapp'],
             'status' => 'pending'
         ]);
 
-        // ✅ redirect ke route yang SUDAH kita tambahkan di web.php
+        // ✅ redirect ke halaman status
         return redirect()->route('booking.status')
             ->with('success', 'Booking berhasil!');
     }

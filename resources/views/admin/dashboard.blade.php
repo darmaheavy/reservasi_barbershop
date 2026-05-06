@@ -202,7 +202,7 @@
                     <h2 class="text-lg font-bold font-display">Reservasi Terbaru</h2>
                     <a href="{{ route('admin.reservations') }}" class="text-[#EAB308] text-sm hover:underline">Lihat Semua →</a>
                 </div>
-                @php $recent = \App\Models\Reservation::latest()->take(5)->get(); @endphp
+                @php $recent = \App\Models\Booking::latest()->take(5)->get(); @endphp
                 @if($recent->isEmpty())
                     <div class="text-center py-12 text-gray-500">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-3 opacity-40"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -222,8 +222,8 @@
                         <tbody class="divide-y divide-gray-800">
                             @foreach($recent as $r)
                             <tr>
-                                <td class="py-3 text-white font-medium">{{ $r->name }}</td>
-                                <td class="py-3 text-gray-400">{{ $r->service }}</td>
+                                <td class="py-3 text-white font-medium">{{ $r->nama }}</td>
+                                <td class="py-3 text-gray-400">{{ $r->layanan }}</td>
                                 <td class="py-3 text-gray-400">{{ \Carbon\Carbon::parse($r->date)->format('d M Y') }}</td>
                                 <td class="py-3">
                                     @if($r->status === 'confirmed')

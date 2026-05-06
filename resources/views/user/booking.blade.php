@@ -40,15 +40,20 @@
 
                     <!-- Layanan -->
                     <div>
-                        <label class="block text-sm font-bold text-gray-300 mb-2">Layanan</label>
-                        <select name="layanan" required
-                            class="w-full bg-[#1c1c1c] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-[#EAB308] focus:ring-1 focus:ring-[#EAB308] transition appearance-none">
-                            
-                            <option value="">--Pilih Layanan--</option>
-                            <option value="Haircut" {{ old('layanan') == 'Haircut' ? 'selected' : '' }}>Haircut - Rp 50k</option>
-                            <option value="Beard Trim" {{ old('layanan') == 'Beard Trim' ? 'selected' : '' }}>Beard Trim - Rp 30k</option>
-                            <option value="Full Service" {{ old('layanan') == 'Full Service' ? 'selected' : '' }}>Full Service - Rp 75k</option>
-                        </select>
+                <label class="block text-sm font-bold text-gray-300 mb-2">Layanan</label>
+                <select name="layanan" required
+                class="w-full bg-[#1c1c1c] border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-[#EAB308] focus:ring-1 focus:ring-[#EAB308] transition appearance-none">
+        
+                <option value="">--Pilih Layanan--</option>
+                {   {-- Mengambil data dinamis dari tabel layanan --}}
+                @foreach($layanan as $item)
+                            <option value="{{ $item->nama }}" {{ old('layanan') == $item->nama ? 'selected' : '' }}>
+                                {{ $item->nama }} — Rp {{ number_format($item->harga, 0, ',', '.') }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-gray-500 text-[10px] mt-1">*Layanan diambil langsung dari daftar harga terbaru</p>
+                    </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
