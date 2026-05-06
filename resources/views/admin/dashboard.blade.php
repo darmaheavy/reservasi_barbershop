@@ -75,11 +75,17 @@
                 Laporan
             </a>
 
-            {{-- ✅ DITAMBAHKAN: menu Status --}}
             <a href="{{ route('admin.status') }}"
                class="sidebar-link {{ request()->routeIs('admin.status') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('admin.status') ? 'text-[#EAB308]' : 'text-gray-400' }}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 Status
+            </a>
+
+            {{-- ✅ TAMBAHAN: menu Galeri --}}
+            <a href="{{ route('admin.galeri') }}"
+               class="sidebar-link {{ request()->routeIs('admin.galeri') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('admin.galeri') ? 'text-[#EAB308]' : 'text-gray-400' }}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+                Galeri
             </a>
         </nav>
 
@@ -104,7 +110,7 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT (tidak berubah) -->
+    <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-auto">
 
         <!-- Header -->
@@ -224,7 +230,7 @@
                             <tr>
                                 <td class="py-3 text-white font-medium">{{ $r->nama }}</td>
                                 <td class="py-3 text-gray-400">{{ $r->layanan }}</td>
-                                <td class="py-3 text-gray-400">{{ \Carbon\Carbon::parse($r->date)->format('d M Y') }}</td>
+                                <td class="py-3 text-gray-400">{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</td>
                                 <td class="py-3">
                                     @if($r->status === 'confirmed')
                                         <span class="px-2 py-1 rounded-full text-xs font-semibold" style="background:rgba(34,197,94,0.15);color:#22c55e;">Dikonfirmasi</span>

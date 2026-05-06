@@ -5,9 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\GaleriController; // ✅ TAMBAHAN
 
 Route::get('/', function () {
-    return view('welcome');
+    $galeri = \App\Models\Galeri::latest()->get();
+    return view('welcome', compact('galeri'));
 });
 
 // ✅ DASHBOARD
@@ -55,4 +57,9 @@ Route::middleware(['auth', 'admin'])
         Route::get('/status', [AdminController::class, 'status'])->name('status');
         Route::get('/antrian', [AdminController::class, 'antrian'])->name('antrian');
         Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
+
+        // ✅ GALERI
+        Route::get('/galeri', [GaleriController::class, 'index'])->name('galeri');
+        Route::post('/galeri', [GaleriController::class, 'store'])->name('galeri.store');
+        Route::delete('/galeri/{id}', [GaleriController::class, 'destroy'])->name('galeri.destroy');
     });

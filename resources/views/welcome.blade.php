@@ -293,7 +293,20 @@
                 <p data-aos="fade-up" class="text-[#EAB308] text-sm font-semibold tracking-widest uppercase mb-3">Karya Kami</p>
                 <h2 data-aos="fade-up" data-aos-delay="100" class="text-4xl md:text-5xl font-bold gold-underline" style="font-family:'Playfair Display',serif;">Galeri</h2>
             </div>
+
+            {{-- ✅ GALERI DARI DATABASE --}}
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                @forelse($galeri as $index => $item)
+                <a href="{{ Storage::url($item->foto) }}"
+                   class="glightbox rounded-xl overflow-hidden aspect-square block"
+                   data-aos="zoom-in"
+                   data-aos-delay="{{ $index * 50 }}">
+                    <img src="{{ Storage::url($item->foto) }}"
+                         class="w-full h-full object-cover gallery-img"
+                         alt="Galeri Mr. Brokker">
+                </a>
+                @empty
+                {{-- Fallback jika belum ada foto di database --}}
                 <a href="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800" class="glightbox rounded-xl overflow-hidden aspect-square block" data-aos="zoom-in">
                     <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400" class="w-full h-full object-cover gallery-img">
                 </a>
@@ -312,7 +325,9 @@
                 <a href="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800" class="glightbox rounded-xl overflow-hidden aspect-square block" data-aos="zoom-in" data-aos-delay="250">
                     <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400" class="w-full h-full object-cover gallery-img">
                 </a>
+                @endforelse
             </div>
+
         </div>
     </section>
 
