@@ -9,7 +9,8 @@ use App\Http\Controllers\GaleriController; // ✅ TAMBAHAN
 
 Route::get('/', function () {
     $galeri = \App\Models\Galeri::latest()->get();
-    return view('welcome', compact('galeri'));
+    $layanan = \App\Models\Layanan::all();
+    return view('welcome', compact('galeri', 'layanan'));
 });
 
 // ✅ DASHBOARD

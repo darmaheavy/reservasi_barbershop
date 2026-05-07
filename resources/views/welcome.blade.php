@@ -44,6 +44,7 @@
             background: rgba(234,179,8,0.12);
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
         }
         .review-card {
             background: #1a1a1a;
@@ -82,8 +83,6 @@
     <!-- ═══════════════════════════════════════════ NAVBAR ══ -->
     <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300" style="background: rgba(14,14,14,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(234,179,8,0.2);">
         <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
-            <!-- Logo -->
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-[#EAB308] rounded-lg flex items-center justify-center">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
@@ -93,7 +92,6 @@
                 <span class="text-white font-bold text-xl" style="font-family:'Playfair Display',serif;">Mr. Brokker</span>
             </div>
 
-            <!-- Desktop Menu -->
             <div class="hidden md:flex items-center space-x-8 text-sm font-medium">
                 <a href="#tentang" class="text-gray-300 hover:text-[#EAB308] transition">Tentang</a>
                 <a href="#layanan" class="text-gray-300 hover:text-[#EAB308] transition">Layanan</a>
@@ -102,22 +100,19 @@
                 <a href="#lokasi" class="text-gray-300 hover:text-[#EAB308] transition">Lokasi</a>
             </div>
 
-            <!-- Auth + Hamburger -->
             <div class="flex items-center gap-3">
-    @if (Route::has('login'))
-        @auth
-            @if(auth()->user()->role === 'admin')
-                <a href="{{ route('admin.dashboard') }}" class="text-sm border border-[#EAB308] px-4 py-2 rounded-lg text-[#EAB308] hover:bg-[#EAB308] hover:text-black transition font-medium">Dashboard Admin</a>
-            @else
-                <a href="{{ url('/dashboard') }}" class="text-sm border border-[#EAB308] px-4 py-2 rounded-lg text-[#EAB308] hover:bg-[#EAB308] hover:text-black transition font-medium">Dashboard</a>
-            @endif
-        @else
-            <a href="{{ route('login') }}" class="hidden md:block text-sm text-gray-300 hover:text-white px-4 py-2 transition">Masuk</a>
-            <a href="{{ route('register') }}" class="text-sm bg-[#EAB308] text-black px-5 py-2 rounded-lg font-bold hover:bg-yellow-400 transition">Daftar</a>
-        @endauth
-    @endif
-
-                <!-- Hamburger -->
+                @if (Route::has('login'))
+                    @auth
+                        @if(auth()->user()->role === 'admin')
+                            <a href="{{ route('admin.dashboard') }}" class="text-sm border border-[#EAB308] px-4 py-2 rounded-lg text-[#EAB308] hover:bg-[#EAB308] hover:text-black transition font-medium">Dashboard Admin</a>
+                        @else
+                            <a href="{{ url('/dashboard') }}" class="text-sm border border-[#EAB308] px-4 py-2 rounded-lg text-[#EAB308] hover:bg-[#EAB308] hover:text-black transition font-medium">Dashboard</a>
+                        @endif
+                    @else
+                        <a href="{{ route('login') }}" class="hidden md:block text-sm text-gray-300 hover:text-white px-4 py-2 transition">Masuk</a>
+                        <a href="{{ route('register') }}" class="text-sm bg-[#EAB308] text-black px-5 py-2 rounded-lg font-bold hover:bg-yellow-400 transition">Daftar</a>
+                    @endauth
+                @endif
                 <button id="hamburger" class="hamburger md:hidden flex flex-col justify-center items-center w-9 h-9 gap-1.5">
                     <span class="line1 hamburger-line block w-5 h-0.5 bg-white"></span>
                     <span class="line2 hamburger-line block w-5 h-0.5 bg-white"></span>
@@ -126,7 +121,6 @@
             </div>
         </div>
 
-        <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden px-6 pb-6 space-y-3 border-t border-gray-800 pt-4">
             <a href="#tentang" class="block text-gray-300 hover:text-[#EAB308] py-1">Tentang</a>
             <a href="#layanan" class="block text-gray-300 hover:text-[#EAB308] py-1">Layanan</a>
@@ -150,10 +144,10 @@
             Mr. Brokker<br>Barbershop
         </h1>
         <p data-aos="fade-up" data-aos-delay="100" data-aos-duration="700" class="text-[#EAB308] text-xl md:text-2xl font-semibold mb-4" style="font-family:'Playfair Display',serif;">
-            Gaya Presisi. Tukang Cukur Nyata. Warisan Lokal.
+            Barbershop Lokal dengan Standar Premium
         </p>
         <p data-aos="fade-up" data-aos-delay="200" class="text-gray-300 text-base md:text-lg mb-10 max-w-xl">
-            Barbershop berorientasi keluarga yang dikenal dengan potongan presisi, energi positif, dan pelanggan setia bertahun-tahun.
+            Barbershop lokal yang mengutamakan kualitas potongan, kenyamanan, dan hubungan baik dengan pelanggan.
         </p>
         <div data-aos="fade-up" data-aos-delay="300" class="flex flex-col sm:flex-row gap-4">
             <a href="{{ route('register') }}" class="flex items-center gap-2 bg-[#EAB308] text-black font-bold py-4 px-8 rounded-xl text-base hover:bg-yellow-400 transition hover:scale-105">
@@ -187,50 +181,86 @@
                 <h2 data-aos="fade-up" data-aos-delay="100" class="text-4xl md:text-5xl font-bold gold-underline" style="font-family:'Playfair Display',serif;">Layanan Kami</h2>
                 <p data-aos="fade-up" data-aos-delay="200" class="text-gray-400 mt-6 max-w-lg mx-auto">Layanan grooming berkualitas yang disesuaikan dengan gaya dan preferensi Anda.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div data-aos="fade-up" data-aos-delay="0" class="service-card p-8">
-                    <div class="icon-box mb-5">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><path d="M6 3L6 21M18 3L18 21M6 7L18 7M6 17L18 17"/></svg>
+
+            {{-- ✅ LAYANAN DARI DATABASE --}}
+            @if($layanan->isNotEmpty())
+
+                {{-- Tampilkan 3 layanan pertama di baris atas --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    @foreach($layanan->take(3) as $index => $l)
+                    <div data-aos="fade-up" data-aos-delay="{{ $index * 100 }}" class="service-card p-8">
+                        <div class="icon-box mb-5">
+                            @if($l->icon)
+                                {{ $l->icon }}
+                            @else
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                            @endif
+                        </div>
+                        <h3 class="text-white text-xl font-bold mb-2">{{ $l->nama }}</h3>
+                        <p class="text-gray-400 text-sm mb-4">{{ $l->deskripsi }}</p>
+                        <p class="text-[#EAB308] font-semibold">Rp{{ number_format($l->harga, 0, ',', '.') }}</p>
                     </div>
-                    <h3 class="text-white text-xl font-bold mb-2">Potong Rambut</h3>
-                    <p class="text-gray-400 text-sm mb-4">Potongan klasik, gaya modern, dan segala sesuatu di antaranya.</p>
-                    <p class="text-[#EAB308] font-semibold">Mulai dari Rp30.000</p>
+                    @endforeach
                 </div>
-                <div data-aos="fade-up" data-aos-delay="100" class="service-card p-8">
-                    <div class="icon-box mb-5">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+
+                {{-- Sisa layanan (dari index ke-3 dst) di baris bawah --}}
+                @if($layanan->count() > 3)
+                @php $sisaLayanan = $layanan->skip(3); $colClass = $sisaLayanan->count() === 1 ? 'md:grid-cols-1 max-w-sm mx-auto' : ($sisaLayanan->count() === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'); @endphp
+                <div class="grid grid-cols-1 {{ $colClass }} gap-6">
+                    @foreach($sisaLayanan as $index => $l)
+                    <div data-aos="fade-up" data-aos-delay="{{ $index * 100 }}" class="service-card p-8">
+                        <div class="icon-box mb-5">
+                            @if($l->icon)
+                                {{ $l->icon }}
+                            @else
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                            @endif
+                        </div>
+                        <h3 class="text-white text-xl font-bold mb-2">{{ $l->nama }}</h3>
+                        <p class="text-gray-400 text-sm mb-4">{{ $l->deskripsi }}</p>
+                        <p class="text-[#EAB308] font-semibold">Rp{{ number_format($l->harga, 0, ',', '.') }}</p>
                     </div>
-                    <h3 class="text-white text-xl font-bold mb-2">Skin Fade</h3>
-                    <p class="text-gray-400 text-sm mb-4">Fade presisi yang menyatu sempurna dari kulit ke rambut.</p>
-                    <p class="text-[#EAB308] font-semibold">Mulai dari Rp35.000</p>
+                    @endforeach
                 </div>
-                <div data-aos="fade-up" data-aos-delay="200" class="service-card p-8">
-                    <div class="icon-box mb-5">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+                @endif
+
+            @else
+                {{-- Fallback jika belum ada layanan di database --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div data-aos="fade-up" class="service-card p-8">
+                        <div class="icon-box mb-5">✂️</div>
+                        <h3 class="text-white text-xl font-bold mb-2">Potong Rambut</h3>
+                        <p class="text-gray-400 text-sm mb-4">Potongan klasik, gaya modern, dan segala sesuatu di antaranya.</p>
+                        <p class="text-[#EAB308] font-semibold">Mulai dari Rp30.000</p>
                     </div>
-                    <h3 class="text-white text-xl font-bold mb-2">Cukur Jenggot</h3>
-                    <p class="text-gray-400 text-sm mb-4">Bentuk, rapikan, dan tata jenggot Anda hingga sempurna.</p>
-                    <p class="text-[#EAB308] font-semibold">Mulai dari Rp20.000</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div data-aos="fade-up" data-aos-delay="100" class="service-card p-8">
-                    <div class="icon-box mb-5">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <div data-aos="fade-up" data-aos-delay="100" class="service-card p-8">
+                        <div class="icon-box mb-5">💈</div>
+                        <h3 class="text-white text-xl font-bold mb-2">Skin Fade</h3>
+                        <p class="text-gray-400 text-sm mb-4">Fade presisi yang menyatu sempurna dari kulit ke rambut.</p>
+                        <p class="text-[#EAB308] font-semibold">Mulai dari Rp35.000</p>
                     </div>
-                    <h3 class="text-white text-xl font-bold mb-2">Potongan Anak</h3>
-                    <p class="text-gray-400 text-sm mb-4">Layanan ramah dan sabar untuk si kecil.</p>
-                    <p class="text-[#EAB308] font-semibold">Mulai dari Rp25.000</p>
-                </div>
-                <div data-aos="fade-up" data-aos-delay="200" class="service-card p-8">
-                    <div class="icon-box mb-5">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <div data-aos="fade-up" data-aos-delay="200" class="service-card p-8">
+                        <div class="icon-box mb-5">🪒</div>
+                        <h3 class="text-white text-xl font-bold mb-2">Cukur Jenggot</h3>
+                        <p class="text-gray-400 text-sm mb-4">Bentuk, rapikan, dan tata jenggot Anda hingga sempurna.</p>
+                        <p class="text-[#EAB308] font-semibold">Mulai dari Rp20.000</p>
                     </div>
-                    <h3 class="text-white text-xl font-bold mb-2">Paket Combo</h3>
-                    <p class="text-gray-400 text-sm mb-4">Paket potong rambut + cukur jenggot untuk tampilan lengkap.</p>
-                    <p class="text-[#EAB308] font-semibold">Mulai dari Rp45.000</p>
                 </div>
-            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div data-aos="fade-up" class="service-card p-8">
+                        <div class="icon-box mb-5">👦</div>
+                        <h3 class="text-white text-xl font-bold mb-2">Potongan Anak</h3>
+                        <p class="text-gray-400 text-sm mb-4">Layanan ramah dan sabar untuk si kecil.</p>
+                        <p class="text-[#EAB308] font-semibold">Mulai dari Rp25.000</p>
+                    </div>
+                    <div data-aos="fade-up" data-aos-delay="100" class="service-card p-8">
+                        <div class="icon-box mb-5">🎁</div>
+                        <h3 class="text-white text-xl font-bold mb-2">Paket Combo</h3>
+                        <p class="text-gray-400 text-sm mb-4">Paket potong rambut + cukur jenggot untuk tampilan lengkap.</p>
+                        <p class="text-[#EAB308] font-semibold">Mulai dari Rp45.000</p>
+                    </div>
+                </div>
+            @endif
 
             <!-- Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
@@ -259,7 +289,7 @@
             <div class="text-center mb-16">
                 <h2 data-aos="fade-up" class="text-4xl md:text-5xl font-bold gold-underline" style="font-family:'Playfair Display',serif;">Lebih dari Sekedar Potong Rambut</h2>
                 <p data-aos="fade-up" data-aos-delay="100" class="text-gray-400 mt-6 max-w-2xl mx-auto">
-                    Mr. Brokker telah menjadi tujuan utama komunitas selama bertahun-tahun. Dikenal dengan fade tajam, potongan gunting yang rapi, dan suasana yang menyambut — para barber kami bangga dengan setiap potongan.
+                    Dari fade tajam sampai potongan clean, Mr. Brokker jadi tempat langganan banyak pelanggan karena hasilnya konsisten dan suasananya nyaman.
                 </p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -293,8 +323,6 @@
                 <p data-aos="fade-up" class="text-[#EAB308] text-sm font-semibold tracking-widest uppercase mb-3">Karya Kami</p>
                 <h2 data-aos="fade-up" data-aos-delay="100" class="text-4xl md:text-5xl font-bold gold-underline" style="font-family:'Playfair Display',serif;">Galeri</h2>
             </div>
-
-            {{-- ✅ GALERI DARI DATABASE --}}
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 @forelse($galeri as $index => $item)
                 <a href="{{ Storage::url($item->foto) }}"
@@ -306,7 +334,6 @@
                          alt="Galeri Mr. Brokker">
                 </a>
                 @empty
-                {{-- Fallback jika belum ada foto di database --}}
                 <a href="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800" class="glightbox rounded-xl overflow-hidden aspect-square block" data-aos="zoom-in">
                     <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400" class="w-full h-full object-cover gallery-img">
                 </a>
@@ -327,32 +354,24 @@
                 </a>
                 @endforelse
             </div>
-
         </div>
     </section>
 
     <!-- ═══════════════════════════════════════════ ULASAN ══ -->
     <section id="ulasan" class="py-24 px-6 bg-dark">
         <div class="max-w-6xl mx-auto">
-            <!-- Walk-in banner -->
             <div data-aos="fade-up" class="border border-[#EAB308]/30 rounded-2xl p-6 text-center mb-20" style="background: rgba(234,179,8,0.05);">
                 <p class="text-lg"><span class="text-[#EAB308] font-semibold">Walk-in Diterima</span> <span class="text-white">(jika tersedia)</span></p>
                 <p class="text-gray-400 text-sm mt-1">Kami menyarankan untuk menelepon terlebih dahulu atau booking online untuk memastikan giliran Anda.</p>
             </div>
-
             <div class="text-center mb-16">
                 <h2 data-aos="fade-up" class="text-4xl md:text-5xl font-bold gold-underline" style="font-family:'Playfair Display',serif;">Kata Pelanggan Kami</h2>
-                <p data-aos="fade-up" data-aos-delay="100" class="text-gray-400 mt-6">Ulasan nyata dari pelanggan setia kami</p>
+                <p data-aos="fade-up" data-aos-delay="100" class="text-gray-400 mt-6">Ulasan dari pelanggan setia kami</p>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div data-aos="flip-left" class="review-card p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="flex gap-1">
-                            @for($i = 0; $i < 5; $i++)
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#EAB308"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            @endfor
-                        </div>
+                        <div class="flex gap-1">@for($i=0;$i<5;$i++)<svg width="16" height="16" viewBox="0 0 24 24" fill="#EAB308"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>@endfor</div>
                         <span class="text-[#EAB308] text-4xl font-bold opacity-20" style="font-family:Georgia,serif;">"</span>
                     </div>
                     <p class="text-gray-300 text-sm italic mb-4">"Barbershop terbaik di kota, tidak diragukan lagi. Sudah ke sini bertahun-tahun dan tidak pernah mengecewakan. Potongan rapi setiap kali."</p>
@@ -360,11 +379,7 @@
                 </div>
                 <div data-aos="flip-left" data-aos-delay="100" class="review-card p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="flex gap-1">
-                            @for($i = 0; $i < 5; $i++)
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#EAB308"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            @endfor
-                        </div>
+                        <div class="flex gap-1">@for($i=0;$i<5;$i++)<svg width="16" height="16" viewBox="0 0 24 24" fill="#EAB308"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>@endfor</div>
                         <span class="text-[#EAB308] text-4xl font-bold opacity-20" style="font-family:Georgia,serif;">"</span>
                     </div>
                     <p class="text-gray-300 text-sm italic mb-4">"Pelayanan sangat ramah, hasil potongan sangat rapi dan memuaskan. Booking online sangat mudah!"</p>
@@ -372,11 +387,7 @@
                 </div>
                 <div data-aos="flip-left" data-aos-delay="200" class="review-card p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="flex gap-1">
-                            @for($i = 0; $i < 5; $i++)
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#EAB308"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            @endfor
-                        </div>
+                        <div class="flex gap-1">@for($i=0;$i<5;$i++)<svg width="16" height="16" viewBox="0 0 24 24" fill="#EAB308"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>@endfor</div>
                         <span class="text-[#EAB308] text-4xl font-bold opacity-20" style="font-family:Georgia,serif;">"</span>
                     </div>
                     <p class="text-gray-300 text-sm italic mb-4">"Tempat yang nyaman, barber sangat profesional. Anak saya yang biasanya susah potong rambut, di sini malah betah!"</p>
@@ -452,13 +463,11 @@
         </div>
     </footer>
 
-    <!-- JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.3.0/js/glightbox.min.js"></script>
     <script>
         AOS.init({ duration: 750, once: true, offset: 80 });
         GLightbox({ selector: '.glightbox' });
-
         const hamburger = document.getElementById('hamburger');
         const mobileMenu = document.getElementById('mobile-menu');
         hamburger.addEventListener('click', () => {
