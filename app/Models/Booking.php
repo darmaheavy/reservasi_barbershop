@@ -9,6 +9,15 @@ class Booking extends Model
 {
     use HasFactory;
 
+    /**
+     * Nama tabel yang digunakan oleh model ini.
+     * Secara eksplisit diarahkan ke 'bookings' agar sinkron dengan database.
+     */
+    protected $table = 'bookings';
+
+    /**
+     * Atribut yang dapat diisi (mass assignable).
+     */
     protected $fillable = [
         'user_id',
         'nama',
@@ -19,7 +28,10 @@ class Booking extends Model
         'status'
     ];
 
-    // ✅ relasi ke user (penting untuk future)
+    /**
+     * Relasi ke User.
+     * Menghubungkan setiap booking dengan akun pengguna yang memesan.
+     */
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -3,181 +3,180 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Reservation;
+use App\Models\Booking; // Menggunakan model yang sudah diarahkan ke tabel 'bookings'
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
-        $totalReservasi = Reservation::count();
-        $pending = Reservation::where('status', 'pending')->count();
-        $confirmed = Reservation::where('status', 'confirmed')->count();
-        $cancelled = Reservation::where('status', 'cancelled')->count();
+        // Mengambil data statistik dari tabel bookings
+        $totalReservasi = Booking::count();
+        $pending = Booking::where('status', 'pending')->count();
+        $confirmed = Booking::where('status', 'confirmed')->count();
+        $cancelled = Booking::where('status', 'cancelled')->count();
 
-        return view('admin.dashboard', compact('totalReservasi', 'pending', 'confirmed', 'cancelled'));
+        // Mengambil data terbaru untuk ditampilkan di dashboard
+        $reservasiTerbaru = Booking::latest()->take(5)->get();
+
+        return view('admin.dashboard', compact('totalReservasi', 'pending', 'confirmed', 'cancelled', 'reservasiTerbaru'));
     }
 
     public function reservations()
     {
-        $reservations = Reservation::latest()->paginate(10);
+        // Menampilkan daftar semua data dari tabel bookings
+        $reservations = Booking::latest()->paginate(10);
         return view('admin.reservations', compact('reservations'));
     }
 
     public function updateStatus(Request $request, $id)
     {
-        $reservation = Reservation::findOrFail($id);
+        $reservation = Booking::findOrFail($id);
         $reservation->update(['status' => $request->status]);
         return back()->with('success', 'Status reservasi berhasil diupdate!');
     }
 
     public function deleteReservation($id)
     {
-        Reservation::findOrFail($id)->delete();
+        Booking::findOrFail($id)->delete();
         return back()->with('success', 'Reservasi berhasil dihapus!');
     }
 
-
-
     // ─── Layanan ───────────────────────────────────────
-public function showLayanan()
-{
-    $layanan = \Illuminate\Support\Facades\DB::table('layanan')->get();
-    return view('admin.layanan', compact('layanan'));
-}
+    public function showLayanan()
+    {
+        $layanan = DB::table('layanan')->get();
+        return view('admin.layanan', compact('layanan'));
+    }
 
-public function storeLayanan(Request $request)
-{
-    $request->validate([
-        'nama'      => 'required',
-        'harga'     => 'required|numeric',
-        'deskripsi' => 'required',
-        'icon'      => 'nullable',
-    ]);
+    public function storeLayanan(Request $request)
+    {
+        $request->validate([
+            'nama'      => 'required',
+            'harga'     => 'required|numeric',
+            'deskripsi' => 'required',
+            'icon'      => 'nullable',
+        ]);
 
-    \Illuminate\Support\Facades\DB::table('layanan')->insert([
-        'nama'       => $request->nama,
-        'harga'      => $request->harga,
-        'deskripsi'  => $request->deskripsi,
-        'icon'       => $request->icon,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+        DB::table('layanan')->insert([
+            'nama'       => $request->nama,
+            'harga'      => $request->harga,
+            'deskripsi'  => $request->deskripsi,
+            // Simpan NULL jika input kosong atau teks 'KOSONG'
+            'icon'       => (empty($request->icon) || $request->icon === 'KOSONG') ? null : $request->icon,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-    return back()->with('success', 'Layanan berhasil ditambahkan!');
-}
+        return back()->with('success', 'Layanan berhasil ditambahkan!');
+    }
 
-public function updateLayanan(Request $request, $id)
-{
-    $request->validate([
-        'nama'      => 'required',
-        'harga'     => 'required|numeric',
-        'deskripsi' => 'required',
-    ]);
+    public function updateLayanan(Request $request, $id)
+    {
+        $request->validate([
+            'nama'      => 'required',
+            'harga'     => 'required|numeric',
+            'deskripsi' => 'required',
+            'icon'      => 'nullable',
+        ]);
 
-    \Illuminate\Support\Facades\DB::table('layanan')->where('id', $id)->update([
-        'nama'       => $request->nama,
-        'harga'      => $request->harga,
-        'deskripsi'  => $request->deskripsi,
-        'icon'       => $request->icon,
-        'updated_at' => now(),
-    ]);
+        DB::table('layanan')->where('id', $id)->update([
+            'nama'       => $request->nama,
+            'harga'      => $request->harga,
+            'deskripsi'  => $request->deskripsi,
+            'icon'       => (empty($request->icon) || $request->icon === 'KOSONG') ? null : $request->icon,
+            'updated_at' => now(),
+        ]);
 
-    return back()->with('success', 'Layanan berhasil diupdate!');
-}
+        return back()->with('success', 'Layanan berhasil diupdate!');
+    }
 
-public function deleteLayanan($id)
-{
-    \Illuminate\Support\Facades\DB::table('layanan')->where('id', $id)->delete();
-    return back()->with('success', 'Layanan berhasil dihapus!');
-}
+    public function deleteLayanan($id)
+    {
+        DB::table('layanan')->where('id', $id)->delete();
+        return back()->with('success', 'Layanan berhasil dihapus!');
+    }
 
-public function antrian()
-{
-    $today = \Carbon\Carbon::today()->toDateString();
+    public function antrian()
+    {
+        $today = Carbon::today()->toDateString();
 
-    $antrian = Reservation::whereDate('date', $today)
-        ->whereIn('status', ['pending', 'confirmed'])
-        ->orderBy('time', 'asc')
-        ->get();
+        // Menyesuaikan kolom 'tanggal' dan 'jam' sesuai tabel bookings
+        $antrian = Booking::whereDate('tanggal', $today)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->orderBy('jam', 'asc')
+            ->get();
 
-    $mendatang = Reservation::whereDate('date', '>', $today)
-        ->whereIn('status', ['pending', 'confirmed'])
-        ->orderBy('date', 'asc')
-        ->orderBy('time', 'asc')
-        ->take(10)
-        ->get();
+        $mendatang = Booking::whereDate('tanggal', '>', $today)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('jam', 'asc')
+            ->take(10)
+            ->get();
 
-    $totalHariIni = Reservation::whereDate('date', $today)->count();
-    $pending = Reservation::whereDate('date', $today)->where('status', 'pending')->count();
-    $confirmed = Reservation::whereDate('date', $today)->where('status', 'confirmed')->count();
-    $cancelled = Reservation::whereDate('date', $today)->where('status', 'cancelled')->count();
+        $totalHariIni = Booking::whereDate('tanggal', $today)->count();
+        $pending = Booking::whereDate('tanggal', $today)->where('status', 'pending')->count();
+        $confirmed = Booking::whereDate('tanggal', $today)->where('status', 'confirmed')->count();
+        $cancelled = Booking::whereDate('tanggal', $today)->where('status', 'cancelled')->count();
 
-    return view('admin.antrian', compact('antrian', 'mendatang', 'totalHariIni', 'pending', 'confirmed', 'cancelled'));
-}
+        return view('admin.antrian', compact('antrian', 'mendatang', 'totalHariIni', 'pending', 'confirmed', 'cancelled'));
+    }
 public function laporan(Request $request)
 {
-    $bulan = $request->bulan ?? \Carbon\Carbon::now()->month;
-    $tahun = $request->tahun ?? \Carbon\Carbon::now()->year;
+    $bulan = (int) ($request->bulan ?? \Carbon\Carbon::now()->month);
+    $tahun = (int) ($request->tahun ?? \Carbon\Carbon::now()->year);
 
-    $reservasiKonfirmasi = Reservation::whereMonth('date', $bulan)
-        ->whereYear('date', $tahun)
-        ->where('status', 'confirmed')
-        ->get();
-
-    $totalReservasi = $reservasiKonfirmasi->count();
-
-    // Join dengan tabel layanan untuk ambil harga
-    $totalPendapatan = \Illuminate\Support\Facades\DB::table('reservations')
-        ->join('layanan', 'reservations.service', '=', 'layanan.nama')
-        ->whereMonth('reservations.date', $bulan)
-        ->whereYear('reservations.date', $tahun)
-        ->where('reservations.status', 'confirmed')
+    // 1. Hitung Total Pendapatan
+    $totalPendapatan = \Illuminate\Support\Facades\DB::table('bookings')
+        ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
+        ->whereMonth('bookings.tanggal', $bulan)
+        ->whereYear('bookings.tanggal', $tahun)
+        ->where('bookings.status', 'confirmed')
         ->sum('layanan.harga');
 
-    // Per layanan
-    $perLayanan = \Illuminate\Support\Facades\DB::table('reservations')
-        ->join('layanan', 'reservations.service', '=', 'layanan.nama')
-        ->whereMonth('reservations.date', $bulan)
-        ->whereYear('reservations.date', $tahun)
-        ->where('reservations.status', 'confirmed')
-        ->selectRaw('reservations.service, SUM(layanan.harga) as total, COUNT(*) as jumlah')
-        ->groupBy('reservations.service')
+    // 2. Hitung Total Reservasi Sukses
+    $totalReservasi = \App\Models\Booking::whereMonth('tanggal', $bulan)
+        ->whereYear('tanggal', $tahun)
+        ->where('status', 'confirmed')
+        ->count();
+
+    // 3. Statistik Per Layanan
+    $perLayanan = \Illuminate\Support\Facades\DB::table('bookings')
+        ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
+        ->whereMonth('bookings.tanggal', $bulan)
+        ->whereYear('bookings.tanggal', $tahun)
+        ->where('bookings.status', 'confirmed')
+        ->selectRaw('bookings.layanan, SUM(layanan.harga) as total, COUNT(*) as jumlah')
+        ->groupBy('bookings.layanan')
         ->orderByDesc('total')
         ->get();
 
-    // Grafik harian
-    $grafikHarian = \Illuminate\Support\Facades\DB::table('reservations')
-        ->join('layanan', 'reservations.service', '=', 'layanan.nama')
-        ->whereMonth('reservations.date', $bulan)
-        ->whereYear('reservations.date', $tahun)
-        ->where('reservations.status', 'confirmed')
-        ->selectRaw("TO_CHAR(reservations.date, 'DD') as tanggal, SUM(layanan.harga) as total")
-        ->groupBy('tanggal')
-        ->orderBy('tanggal')
+    // 4. Detail Transaksi Terbaru (INI YANG KURANG)
+    $detailTransaksi = \Illuminate\Support\Facades\DB::table('bookings')
+        ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
+        ->whereMonth('bookings.tanggal', $bulan)
+        ->whereYear('bookings.tanggal', $tahun)
+        ->where('bookings.status', 'confirmed')
+        ->select('bookings.nama', 'bookings.layanan', 'bookings.tanggal', 'layanan.harga')
+        ->orderByDesc('bookings.tanggal')
+        ->take(10)
         ->get();
 
-    // Detail transaksi terbaru
-    $detailTransaksi = \Illuminate\Support\Facades\DB::table('reservations')
-        ->join('layanan', 'reservations.service', '=', 'layanan.nama')
-        ->whereMonth('reservations.date', $bulan)
-        ->whereYear('reservations.date', $tahun)
-        ->where('reservations.status', 'confirmed')
-        ->selectRaw('reservations.name, reservations.service, reservations.date, layanan.harga')
-        ->orderByDesc('reservations.date')
-        ->take(8)
-        ->get();
-
+    // 5. Kirim semua variabel ke view (Pastikan detailTransaksi ada di sini)
     return view('admin.laporan', compact(
-        'bulan', 'tahun', 'totalPendapatan', 'totalReservasi',
-        'perLayanan', 'grafikHarian', 'detailTransaksi'
+        'bulan', 
+        'tahun', 
+        'totalPendapatan', 
+        'totalReservasi', 
+        'perLayanan', 
+        'detailTransaksi'
     ));
 }
-public function status()
-{
-    $reservations = \App\Models\Reservation::latest()->get();
 
-    return view('admin.status', compact('reservations'));
+    public function status()
+    {
+        $reservations = Booking::latest()->get();
+        return view('admin.status', compact('reservations'));
+    }
 }
-
-}
-

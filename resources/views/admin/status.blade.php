@@ -24,7 +24,7 @@
 
 <div class="flex min-h-screen">
 
-    <!-- SIDEBAR (sama persis dengan dashboard) -->
+    <!-- SIDEBAR -->
     <aside class="w-64 shrink-0 flex flex-col" style="background:#111; border-right: 1px solid #222;">
         <div class="px-6 py-6 border-b border-gray-800">
             <div class="flex items-center gap-3">
@@ -169,9 +169,12 @@
                         <tbody class="divide-y divide-gray-800">
                             @foreach($reservations as $r)
                             <tr>
-                                <td class="py-3 text-white font-medium">{{ $r->name }}</td>
-                                <td class="py-3 text-gray-400">{{ $r->service }}</td>
-                                <td class="py-3 text-gray-400">{{ \Carbon\Carbon::parse($r->date)->format('d M Y') }}</td>
+                                {{-- PERBAIKAN: $r->name -> $r->nama --}}
+                                <td class="py-3 text-white font-medium">{{ $r->nama }}</td>
+                                {{-- PERBAIKAN: $r->service -> $r->layanan --}}
+                                <td class="py-3 text-gray-400">{{ $r->layanan }}</td>
+                                {{-- PERBAIKAN: $r->date -> $r->tanggal --}}
+                                <td class="py-3 text-gray-400">{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</td>
                                 <td class="py-3">
                                     @if($r->status === 'confirmed')
                                         <span class="px-2 py-1 rounded-full text-xs font-semibold" style="background:rgba(34,197,94,0.15);color:#22c55e;">Dikonfirmasi</span>

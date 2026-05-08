@@ -18,7 +18,7 @@
 
 <div class="flex min-h-screen">
 
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR (Tetap sama) -->
     <aside class="w-64 shrink-0 flex flex-col" style="background:#111; border-right: 1px solid #222;">
         <div class="px-6 py-6 border-b border-gray-800">
             <div class="flex items-center gap-3">
@@ -72,7 +72,6 @@
         </div>
 
         <div class="px-8 py-8">
-
             @if(session('success'))
             <div class="mb-6 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
@@ -104,14 +103,22 @@
                             @foreach($reservations as $r)
                             <tr>
                                 <td class="py-4 pr-4">
-                                    <p class="text-white font-medium">{{ $r->name }}</p>
+                                    {{-- DISESUAIKAN: $r->name -> $r->nama --}}
+                                    <p class="text-white font-medium">{{ $r->nama }}</p>
                                 </td>
-                                <td class="py-4 pr-4 text-gray-400">{{ $r->service }}</td>
                                 <td class="py-4 pr-4 text-gray-400">
-                                    <p>{{ \Carbon\Carbon::parse($r->date)->format('d M Y') }}</p>
-                                    <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($r->time)->format('H:i') }} WIB</p>
+                                    {{-- DISESUAIKAN: $r->service -> $r->layanan --}}
+                                    {{ $r->layanan }}
                                 </td>
-                                <td class="py-4 pr-4 text-gray-400">{{ $r->phone ?? '-' }}</td>
+                                <td class="py-4 pr-4 text-gray-400">
+                                    {{-- DISESUAIKAN: $r->date -> $r->tanggal & $r->time -> $r->jam --}}
+                                    <p>{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</p>
+                                    <p class="text-xs text-gray-500">{{ $r->jam }} WIB</p>
+                                </td>
+                                <td class="py-4 pr-4 text-gray-400">
+                                    {{-- DISESUAIKAN: $r->phone -> $r->whatsapp --}}
+                                    {{ $r->whatsapp ?? '-' }}
+                                </td>
                                 <td class="py-4 pr-4">
                                     @if($r->status === 'confirmed')
                                         <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(34,197,94,0.15);color:#22c55e;">Dikonfirmasi</span>
@@ -123,7 +130,6 @@
                                 </td>
                                 <td class="py-4">
                                     <div class="flex items-center gap-2">
-                                        <!-- Konfirmasi -->
                                         @if($r->status !== 'confirmed')
                                         <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST">
                                             @csrf @method('PUT')
@@ -134,7 +140,6 @@
                                         </form>
                                         @endif
 
-                                        <!-- Batalkan -->
                                         @if($r->status !== 'cancelled')
                                         <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST">
                                             @csrf @method('PUT')
@@ -145,7 +150,6 @@
                                         </form>
                                         @endif
 
-                                        <!-- Hapus -->
                                         <form action="{{ route('admin.reservations.delete', $r->id) }}" method="POST" onsubmit="return confirm('Yakin hapus reservasi ini?')">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(107,114,128,0.15);color:#9ca3af;border:1px solid rgba(107,114,128,0.3);">
@@ -160,13 +164,11 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
                 <div class="mt-6 flex justify-end">
                     {{ $reservations->links() }}
                 </div>
                 @endif
             </div>
-
         </div>
     </main>
 </div>

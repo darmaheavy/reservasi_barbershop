@@ -4,20 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Booking;
 
 class BookingController extends Controller
 {
-    // ✅ tampilkan form booking
     public function create()
     {
-        return view('user.booking');
+        $layanan = DB::table('layanan')->get();
+        return view('user.booking', compact('layanan'));
     }
 
-    // ✅ simpan data dari form
     public function store(Request $request)
     {
-        // ✅ validasi input
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'layanan' => 'required|string',
@@ -26,9 +25,8 @@ class BookingController extends Controller
             'whatsapp' => 'required|string|max:20',
         ]);
 
-        // ✅ simpan ke database
         Booking::create([
-            'user_id' => Auth::id(),
+            'user_id' => Auth::id(), // Pastikan user login
             'nama' => $validated['nama'],
             'layanan' => $validated['layanan'],
             'tanggal' => $validated['tanggal'],
@@ -37,16 +35,16 @@ class BookingController extends Controller
             'status' => 'pending'
         ]);
 
-        // ✅ redirect ke route yang SUDAH kita tambahkan di web.php
         return redirect()->route('booking.status')
-            ->with('success', 'Booking berhasil!');
+            ->with('success', 'Booking berhasil dibuat!');
     }
 
-    // ✅ halaman cek status booking
     public function status()
     {
+        // Mengambil SEMUA booking milik user yang sedang login
         $bookings = Booking::where('user_id', Auth::id())
-            ->latest()
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('jam', 'desc')
             ->get();
 
         return view('user.cek-status', compact('bookings'));

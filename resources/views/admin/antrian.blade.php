@@ -26,7 +26,6 @@
 
 <div class="flex min-h-screen">
 
-    <!-- SIDEBAR -->
     <aside class="w-64 shrink-0 flex flex-col" style="background:#111; border-right: 1px solid #222;">
         <div class="px-6 py-6 border-b border-gray-800">
             <div class="flex items-center gap-3">
@@ -82,9 +81,7 @@
         </div>
     </aside>
 
-    <!-- MAIN -->
     <main class="flex-1 overflow-auto">
-        <!-- Header -->
         <div class="px-8 py-6 border-b border-gray-800 flex items-center justify-between" style="background:#111;">
             <div>
                 <h1 class="text-xl font-bold font-display text-white">Monitoring Antrian</h1>
@@ -108,7 +105,6 @@
             </div>
             @endif
 
-            <!-- Summary Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="card p-5 text-center">
                     <p class="text-3xl font-bold text-white font-display">{{ $totalHariIni }}</p>
@@ -128,7 +124,6 @@
                 </div>
             </div>
 
-            <!-- Antrian Cards -->
             @if($antrian->isEmpty())
                 <div class="card p-16 text-center text-gray-500">
                     <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-4 opacity-30"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -139,15 +134,20 @@
             <div class="space-y-4">
                 @foreach($antrian as $i => $r)
                 @php
-                    $jamReservasi = \Carbon\Carbon::parse($r->time);
+                    $jamReservasi = \Carbon\Carbon::parse($r->jam);
                     $sekarang = \Carbon\Carbon::now();
                     $isNow = $sekarang->format('H') == $jamReservasi->format('H');
-                    $isPast = $jamReservasi->lt($sekarang);
+
+                    // Membersihkan format nomor WA untuk API WhatsApp
+                    $phone = preg_replace('/[^0-9]/', '', $r->whatsapp);
+                    if (str_starts_with($phone, '0')) {
+                        $phone = '62' . substr($phone, 1);
+                    }
+                    $waUrl = "https://wa.me/{$phone}?text=" . urlencode("Halo {$r->nama}, kami dari Mr. Brokker Barbershop ingin mengonfirmasi antrian Anda pada jam {$r->jam}.");
                 @endphp
                 <div class="antrian-card p-5 {{ $isNow && $r->status === 'confirmed' ? 'active-now' : '' }}">
                     <div class="flex items-center justify-between flex-wrap gap-4">
 
-                        <!-- Nomor & Info -->
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg font-display shrink-0"
                                 style="{{ $isNow && $r->status === 'confirmed' ? 'background:rgba(34,197,94,0.2);color:#22c55e;' : 'background:rgba(234,179,8,0.15);color:#EAB308;' }}">
@@ -155,22 +155,28 @@
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <p class="text-white font-semibold text-base">{{ $r->name }}</p>
+                                    <p class="text-white font-semibold text-base">{{ $r->nama }}</p>
                                     @if($isNow && $r->status === 'confirmed')
                                         <span class="badge pulse" style="background:rgba(34,197,94,0.2);color:#22c55e;">🟢 Sedang Dilayani</span>
                                     @endif
                                 </div>
-                                <p class="text-gray-400 text-sm mt-0.5">{{ $r->service }}</p>
-                                @if($r->phone)
-                                    <p class="text-gray-500 text-xs mt-0.5">📱 {{ $r->phone }}</p>
+                                <p class="text-gray-400 text-sm mt-0.5">{{ $r->layanan }}</p>
+                                
+                                {{-- TOMBOL CHAT WHATSAPP --}}
+                                @if($r->whatsapp)
+                                    <div class="mt-2">
+                                        <a href="{{ $waUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-500 text-[11px] font-bold transition border border-green-500/20">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                            Chat WhatsApp
+                                        </a>
+                                    </div>
                                 @endif
                             </div>
                         </div>
 
-                        <!-- Jam & Status -->
                         <div class="flex items-center gap-6">
                             <div class="text-center">
-                                <p class="text-[#EAB308] text-xl font-bold font-display">{{ \Carbon\Carbon::parse($r->time)->format('H:i') }}</p>
+                                <p class="text-[#EAB308] text-xl font-bold font-display">{{ \Carbon\Carbon::parse($r->jam)->format('H:i') }}</p>
                                 <p class="text-gray-500 text-xs">WIB</p>
                             </div>
 
@@ -184,7 +190,6 @@
                                 @endif
                             </div>
 
-                            <!-- Ubah Status -->
                             <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST">
                                 @csrf @method('PUT')
                                 <select name="status" class="select-status" onchange="this.form.submit()">
@@ -200,36 +205,37 @@
             </div>
             @endif
 
-            <!-- Reservasi Mendatang -->
             @if($mendatang->isNotEmpty())
             <div class="mt-10">
                 <h2 class="text-lg font-bold font-display mb-4 text-gray-300">📅 Reservasi Mendatang</h2>
                 <div class="card overflow-hidden">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-sm text-left">
                         <thead>
                             <tr class="border-b border-gray-800">
-                                <th class="text-left text-gray-500 font-medium py-3 px-5">Pelanggan</th>
-                                <th class="text-left text-gray-500 font-medium py-3 px-5">Layanan</th>
-                                <th class="text-left text-gray-500 font-medium py-3 px-5">Tanggal</th>
-                                <th class="text-left text-gray-500 font-medium py-3 px-5">Jam</th>
-                                <th class="text-left text-gray-500 font-medium py-3 px-5">Status</th>
+                                <th class="text-gray-500 font-medium py-3 px-5">Pelanggan</th>
+                                <th class="text-gray-500 font-medium py-3 px-5">Layanan</th>
+                                <th class="text-gray-500 font-medium py-3 px-5">Tanggal</th>
+                                <th class="text-gray-500 font-medium py-3 px-5">Jam</th>
+                                <th class="text-gray-500 font-medium py-3 px-5">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-800">
                             @foreach($mendatang as $r)
+                            @php
+                                $phoneMendatang = preg_replace('/[^0-9]/', '', $r->whatsapp);
+                                if (str_starts_with($phoneMendatang, '0')) { $phoneMendatang = '62' . substr($phoneMendatang, 1); }
+                                $waUrlMendatang = "https://wa.me/{$phoneMendatang}?text=" . urlencode("Halo {$r->nama}, kami mengonfirmasi reservasi Anda tanggal {$r->tanggal} jam {$r->jam}.");
+                            @endphp
                             <tr>
-                                <td class="py-3 px-5 text-white font-medium">{{ $r->name }}</td>
-                                <td class="py-3 px-5 text-gray-400">{{ $r->service }}</td>
-                                <td class="py-3 px-5 text-gray-400">{{ \Carbon\Carbon::parse($r->date)->format('d M Y') }}</td>
-                                <td class="py-3 px-5 text-[#EAB308] font-semibold">{{ \Carbon\Carbon::parse($r->time)->format('H:i') }} WIB</td>
+                                <td class="py-3 px-5 text-white font-medium">{{ $r->nama }}</td>
+                                <td class="py-3 px-5 text-gray-400">{{ $r->layanan }}</td>
+                                <td class="py-3 px-5 text-gray-400">{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</td>
+                                <td class="py-3 px-5 text-[#EAB308] font-semibold">{{ \Carbon\Carbon::parse($r->jam)->format('H:i') }} WIB</td>
                                 <td class="py-3 px-5">
-                                    @if($r->status === 'confirmed')
-                                        <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">✅ Dikonfirmasi</span>
-                                    @elseif($r->status === 'cancelled')
-                                        <span class="badge" style="background:rgba(239,68,68,0.15);color:#ef4444;">❌ Dibatalkan</span>
-                                    @else
-                                        <span class="badge" style="background:rgba(234,179,8,0.15);color:#EAB308;">⏳ Menunggu</span>
-                                    @endif
+                                    <a href="{{ $waUrlMendatang }}" target="_blank" class="text-green-500 hover:text-green-400 flex items-center gap-1 font-bold text-xs">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                        Chat
+                                    </a>
                                 </td>
                             </tr>
                             @endforeach
@@ -244,14 +250,12 @@
 </div>
 
 <script>
-    // Update last refresh time
     function updateTime() {
         const now = new Date();
         document.getElementById('lastUpdate').textContent = 'Update: ' + now.toLocaleTimeString('id-ID');
     }
     updateTime();
 
-    // Auto refresh setiap 60 detik
     setInterval(() => {
         window.location.reload();
     }, 60000);

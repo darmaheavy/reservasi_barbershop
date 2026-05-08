@@ -153,7 +153,6 @@
         </div>
     </main>
 </div>
-
 <!-- MODAL TAMBAH -->
 <div id="modalTambah" class="modal">
     <div class="w-full max-w-md mx-4 rounded-2xl p-6" style="background:#1a1a1a; border:1px solid #2a2a2a;">
@@ -177,8 +176,9 @@
             </div>
             <div>
                 <label class="text-gray-400 text-xs font-medium mb-1 block">Icon (emoji)</label>
-                <input type="text" name="icon" class="input" placeholder="contoh: ✂️ 💈 ⭐" required>
-                <p class="text-gray-600 text-xs mt-1">Gunakan emoji sebagai icon</p>
+                <!-- REQUIRED DIHAPUS DI SINI -->
+                <input type="text" name="icon" class="input" placeholder="contoh: ✂️ 💈 ⭐">
+                <p class="text-gray-600 text-xs mt-1">Gunakan emoji sebagai icon (boleh dikosongkan)</p>
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="document.getElementById('modalTambah').classList.remove('open')"
@@ -214,7 +214,8 @@
             </div>
             <div>
                 <label class="text-gray-400 text-xs font-medium mb-1 block">Icon (emoji)</label>
-                <input type="text" name="icon" id="editIcon" class="input" required>
+                <!-- REQUIRED DIHAPUS DI SINI -->
+                <input type="text" name="icon" id="editIcon" class="input" placeholder="Kosongkan jika tidak ada icon">
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="document.getElementById('modalEdit').classList.remove('open')"
