@@ -4,54 +4,47 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB; // Tambahkan ini untuk akses DB
+use Illuminate\Support\Facades\DB;
 use App\Models\Booking;
 
 class BookingController extends Controller
 {
-    // ✅ tampilkan form booking dengan data layanan dinamis
+    // ✅ tampilkan form booking
     public function create()
     {
-        // Ambil semua data dari tabel layanan agar muncul di dropdown form
-        $layanan = DB::table('layanan')->get();
-
-        // Kirim variabel $layanan ke view user.booking
+        $layanan = DB::table('layanan')->get(); // FIXED: kirim data layanan ke view
         return view('user.booking', compact('layanan'));
     }
 
-    // ✅ simpan data dari form
     public function store(Request $request)
     {
-        // ✅ validasi input
         $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'layanan' => 'required|string',
-            'tanggal' => 'required|date',
-            'jam' => 'required',
+            'nama'     => 'required|string|max:255',
+            'layanan'  => 'required|string',
+            'tanggal'  => 'required|date',
+            'jam'      => 'required',
             'whatsapp' => 'required|string|max:20',
         ]);
 
-        // ✅ simpan ke database (pastikan Model Booking sudah diarahkan ke tabel 'bookings')
         Booking::create([
-            'user_id' => Auth::id(),
-            'nama' => $validated['nama'],
-            'layanan' => $validated['layanan'], // Ini akan berisi nama layanan yang dipilih user
-            'tanggal' => $validated['tanggal'],
-            'jam' => $validated['jam'],
+            'user_id'  => Auth::id(),
+            'nama'     => $validated['nama'],
+            'layanan'  => $validated['layanan'],
+            'tanggal'  => $validated['tanggal'],
+            'jam'      => $validated['jam'],
             'whatsapp' => $validated['whatsapp'],
-            'status' => 'pending'
+            'status'   => 'pending',
         ]);
 
-        // ✅ redirect ke halaman status
         return redirect()->route('booking.status')
-            ->with('success', 'Booking berhasil!');
+            ->with('success', 'Booking berhasil dibuat!');
     }
 
-    // ✅ halaman cek status booking
     public function status()
     {
         $bookings = Booking::where('user_id', Auth::id())
-            ->latest()
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('jam', 'desc')
             ->get();
 
         return view('user.cek-status', compact('bookings'));

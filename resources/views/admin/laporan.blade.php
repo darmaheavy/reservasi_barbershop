@@ -36,7 +36,7 @@
                 </div>
             </div>
         </div>
-                <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             <p class="text-gray-600 text-xs font-semibold uppercase tracking-wider px-3 mb-2">Menu Utama</p>
 
             <a href="{{ route('admin.dashboard') }}"
@@ -71,7 +71,6 @@
                 Laporan
             </a>
 
-            {{-- ✅ DITAMBAHKAN: menu Status --}}
             <a href="{{ route('admin.status') }}"
                class="sidebar-link {{ request()->routeIs('admin.status') ? 'active' : '' }} flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('admin.status') ? 'text-[#EAB308]' : 'text-gray-400' }}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -135,7 +134,7 @@
                         </div>
                     </div>
                     <p class="text-3xl font-bold text-[#EAB308] font-display">Rp{{ number_format($totalPendapatan, 0, ',', '.') }}</p>
-                    <p class="text-gray-500 text-xs mt-1">{{ \Carbon\Carbon::create()->month($bulan)->locale('id')->monthName }} {{ $tahun }}</p>
+                    <p class="text-gray-500 text-xs mt-1">{{ \Carbon\Carbon::create()->month((int)$bulan)->locale('id')->monthName }}{{ $tahun }}</p>
                 </div>
                 <div class="stat-card p-6">
                     <div class="flex items-center justify-between mb-3">
@@ -160,10 +159,12 @@
             </div>
 
             <!-- Grafik -->
+            @if(isset($grafikHarian) && count($grafikHarian) > 0)
             <div class="card p-6 mb-8">
                 <h2 class="text-base font-bold font-display mb-6">Grafik Pendapatan Harian</h2>
                 <canvas id="grafikPendapatan" height="80"></canvas>
             </div>
+            @endif
 
             <!-- Tabel per Layanan -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -176,7 +177,7 @@
                         @foreach($perLayanan as $l)
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3 flex-1">
-                                <div class="text-sm text-white font-medium">{{ $l->service }}</div>
+                                <div class="text-sm text-white font-medium">{{ $l->layanan }}</div>
                             </div>
                             <div class="text-right">
                                 <p class="text-[#EAB308] font-semibold text-sm">Rp{{ number_format($l->total, 0, ',', '.') }}</p>
@@ -194,15 +195,15 @@
                 <!-- Tabel Detail -->
                 <div class="card p-6">
                     <h2 class="text-base font-bold font-display mb-4">Transaksi Terbaru</h2>
-                    @if($detailTransaksi->isEmpty())
+                    @if(!isset($detailTransaksi) || $detailTransaksi->isEmpty())
                         <p class="text-gray-500 text-sm text-center py-8">Belum ada transaksi</p>
                     @else
                     <div class="space-y-3">
                         @foreach($detailTransaksi as $t)
                         <div class="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
                             <div>
-                                <p class="text-white text-sm font-medium">{{ $t->name }}</p>
-                                <p class="text-gray-500 text-xs">{{ $t->service }} · {{ \Carbon\Carbon::parse($t->date)->format('d M') }}</p>
+                                <p class="text-white text-sm font-medium">{{ $t->nama }}</p>
+                                <p class="text-gray-500 text-xs">{{ $t->layanan }} · {{ \Carbon\Carbon::parse($t->tanggal)->format('d M') }}</p>
                             </div>
                             <p class="text-[#EAB308] font-semibold text-sm">Rp{{ number_format($t->harga ?? 0, 0, ',', '.') }}</p>
                         </div>
@@ -216,6 +217,7 @@
     </main>
 </div>
 
+@if(isset($grafikHarian) && count($grafikHarian) > 0)
 <script>
 const ctx = document.getElementById('grafikPendapatan').getContext('2d');
 const grafikData = @json($grafikHarian);
@@ -260,6 +262,7 @@ new Chart(ctx, {
     }
 });
 </script>
+@endif
 
 </body>
 </html>

@@ -17,7 +17,7 @@
                         Booking
                     </a>
                     
-                    <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'text-[#EAB308] font-bold' : 'text-white hover:text-[#EAB308]' }} text-sm transition">
+                    <a href="{{ route('booking.status') }}" class="{{ request()->routeIs('dashboard') ? 'text-[#EAB308] font-bold' : 'text-white hover:text-[#EAB308]' }} text-sm transition">
                         Cek Status
                     </a>
 

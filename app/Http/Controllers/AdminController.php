@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Booking; // Menggunakan model yang sudah diarahkan ke tabel 'bookings'
+use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -11,13 +11,10 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        // Mengambil data statistik dari tabel bookings
         $totalReservasi = Booking::count();
         $pending = Booking::where('status', 'pending')->count();
         $confirmed = Booking::where('status', 'confirmed')->count();
         $cancelled = Booking::where('status', 'cancelled')->count();
-
-        // Mengambil data terbaru untuk ditampilkan di dashboard
         $reservasiTerbaru = Booking::latest()->take(5)->get();
 
         return view('admin.dashboard', compact('totalReservasi', 'pending', 'confirmed', 'cancelled', 'reservasiTerbaru'));
@@ -25,7 +22,6 @@ class AdminController extends Controller
 
     public function reservations()
     {
-        // Menampilkan daftar semua data dari tabel bookings
         $reservations = Booking::latest()->paginate(10);
         return view('admin.reservations', compact('reservations'));
     }
@@ -123,8 +119,8 @@ class AdminController extends Controller
 
     public function laporan(Request $request)
     {
-        $bulan = $request->bulan ?? Carbon::now()->month;
-        $tahun = $request->tahun ?? Carbon::now()->year;
+        $bulan = (int) ($request->bulan ?? Carbon::now()->month);
+        $tahun = (int) ($request->tahun ?? Carbon::now()->year);
 
         $totalPendapatan = DB::table('bookings')
             ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
@@ -138,28 +134,28 @@ class AdminController extends Controller
             ->where('status', 'confirmed')
             ->count();
 
+        // FIXED: alias 'service' → 'layanan' agar cocok dengan $l->layanan di view
         $perLayanan = DB::table('bookings')
             ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
             ->whereMonth('bookings.tanggal', $bulan)
             ->whereYear('bookings.tanggal', $tahun)
             ->where('bookings.status', 'confirmed')
-            ->selectRaw('bookings.layanan as service, SUM(layanan.harga) as total, COUNT(*) as jumlah')
+            ->selectRaw('bookings.layanan as layanan, SUM(layanan.harga) as total, COUNT(*) as jumlah')
             ->groupBy('bookings.layanan')
             ->orderByDesc('total')
             ->get();
 
-        // ✅ PERBAIKAN: nama_pelanggan -> nama (sesuai kolom di tabel bookings)
+        // FIXED: alias 'name'→'nama', 'service'→'layanan', 'date'→'tanggal' agar cocok dengan view
         $detailTransaksi = DB::table('bookings')
             ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
             ->whereMonth('bookings.tanggal', $bulan)
             ->whereYear('bookings.tanggal', $tahun)
             ->where('bookings.status', 'confirmed')
-            ->selectRaw('bookings.nama as name, bookings.layanan as service, bookings.tanggal as date, layanan.harga')
+            ->selectRaw('bookings.nama as nama, bookings.layanan as layanan, bookings.tanggal as tanggal, layanan.harga')
             ->orderByDesc('bookings.tanggal')
             ->limit(10)
             ->get();
 
-        // ✅ Grafik harian
         $grafikHarian = DB::table('bookings')
             ->join('layanan', 'bookings.layanan', '=', 'layanan.nama')
             ->whereMonth('bookings.tanggal', $bulan)
@@ -171,8 +167,8 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.laporan', compact(
-            'bulan', 'tahun', 'totalPendapatan', 'totalReservasi', 'perLayanan',
-            'detailTransaksi', 'grafikHarian'
+            'bulan', 'tahun', 'totalPendapatan', 'totalReservasi',
+            'perLayanan', 'detailTransaksi', 'grafikHarian'
         ));
     }
 

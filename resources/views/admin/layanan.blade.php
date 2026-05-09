@@ -179,7 +179,7 @@
     </main>
 </div>
 
-<!-- ═══════════ MODAL TAMBAH ═══════════ -->
+<!-- MODAL TAMBAH -->
 <div id="modalTambah" class="modal">
     <div class="w-full max-w-md mx-4 rounded-2xl p-6" style="background:#1a1a1a; border:1px solid #2a2a2a; max-height:90vh; overflow-y:auto;">
         <div class="flex items-center justify-between mb-6">
@@ -218,7 +218,7 @@
     </div>
 </div>
 
-<!-- ═══════════ MODAL EDIT ═══════════ -->
+<!-- MODAL EDIT -->
 <div id="modalEdit" class="modal">
     <div class="w-full max-w-md mx-4 rounded-2xl p-6" style="background:#1a1a1a; border:1px solid #2a2a2a; max-height:90vh; overflow-y:auto;">
         <div class="flex items-center justify-between mb-6">
