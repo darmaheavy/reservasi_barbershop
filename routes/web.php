@@ -5,15 +5,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\GaleriController; // ✅ TAMBAHAN
+use App\Http\Controllers\GaleriController;
 
+// ✅ HALAMAN UTAMA
 Route::get('/', function () {
     $galeri = \App\Models\Galeri::latest()->get();
     $layanan = \App\Models\Layanan::all();
+
     return view('welcome', compact('galeri', 'layanan'));
 });
 
-// ✅ DASHBOARD
+// ✅ DASHBOARD USER
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -29,9 +31,8 @@ Route::middleware('auth')->group(function () {
     // ✅ BOOKING
     Route::get('/booking', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
-
-    // 🔥 TAMBAHAN INI (BIAR ERROR HILANG)
     Route::get('/booking/status', [BookingController::class, 'status'])->name('booking.status');
+    Route::get('/booking/slots', [BookingController::class, 'getSlot'])->name('booking.slots');
 });
 
 require __DIR__.'/auth.php';
@@ -42,25 +43,65 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
 
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        // ✅ DASHBOARD
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])
+            ->name('dashboard');
 
-        Route::get('/reservations', [AdminController::class, 'reservations'])->name('reservations');
+        // ✅ RESERVATIONS
+        Route::get('/reservations', [AdminController::class, 'reservations'])
+            ->name('reservations');
 
-        Route::put('/reservations/{id}/status', [AdminController::class, 'updateStatus'])->name('reservations.status');
+        Route::put('/reservations/{id}/status', [AdminController::class, 'updateStatus'])
+            ->name('reservations.status');
 
-        Route::delete('/reservations/{id}', [AdminController::class, 'deleteReservation'])->name('reservations.delete');
+        Route::delete('/reservations/{id}', [AdminController::class, 'deleteReservation'])
+            ->name('reservations.delete');
 
-        Route::get('/layanan', [AdminController::class, 'showLayanan'])->name('layanan');
-        Route::post('/layanan', [AdminController::class, 'storeLayanan'])->name('layanan.store');
-        Route::put('/layanan/{id}', [AdminController::class, 'updateLayanan'])->name('layanan.update');
-        Route::delete('/layanan/{id}', [AdminController::class, 'deleteLayanan'])->name('layanan.delete');
+        // ✅ LAYANAN
+        Route::get('/layanan', [AdminController::class, 'showLayanan'])
+            ->name('layanan');
 
-        Route::get('/status', [AdminController::class, 'status'])->name('status');
-        Route::get('/antrian', [AdminController::class, 'antrian'])->name('antrian');
-        Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
+        Route::post('/layanan', [AdminController::class, 'storeLayanan'])
+            ->name('layanan.store');
+
+        Route::put('/layanan/{id}', [AdminController::class, 'updateLayanan'])
+            ->name('layanan.update');
+
+        Route::delete('/layanan/{id}', [AdminController::class, 'deleteLayanan'])
+            ->name('layanan.delete');
+
+        // ✅ STATUS
+        Route::get('/status', [AdminController::class, 'status'])
+            ->name('status');
+
+        // ✅ ANTRIAN
+        Route::get('/antrian', [AdminController::class, 'antrian'])
+            ->name('antrian');
+
+        // ✅ LAPORAN
+        Route::get('/laporan', [AdminController::class, 'laporan'])
+            ->name('laporan');
+
+        // ✅ JADWAL CRUD
+        Route::get('/jadwal', [AdminController::class, 'jadwal'])
+            ->name('jadwal');
+
+        Route::post('/jadwal', [AdminController::class, 'storeJadwal'])
+            ->name('jadwal.store');
+
+        Route::put('/jadwal/{id}', [AdminController::class, 'updateJadwal'])
+            ->name('jadwal.update');
+
+        Route::delete('/jadwal/{id}', [AdminController::class, 'deleteJadwal'])
+            ->name('jadwal.delete');
 
         // ✅ GALERI
-        Route::get('/galeri', [GaleriController::class, 'index'])->name('galeri');
-        Route::post('/galeri', [GaleriController::class, 'store'])->name('galeri.store');
-        Route::delete('/galeri/{id}', [GaleriController::class, 'destroy'])->name('galeri.destroy');
+        Route::get('/galeri', [GaleriController::class, 'index'])
+            ->name('galeri');
+
+        Route::post('/galeri', [GaleriController::class, 'store'])
+            ->name('galeri.store');
+
+        Route::delete('/galeri/{id}', [GaleriController::class, 'destroy'])
+            ->name('galeri.destroy');
     });
