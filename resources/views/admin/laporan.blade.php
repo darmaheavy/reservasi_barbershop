@@ -23,7 +23,6 @@
 
 <div class="flex min-h-screen">
 
-    <!-- SIDEBAR -->
     <aside class="w-64 shrink-0 flex flex-col" style="background:#111; border-right: 1px solid #222;">
         <div class="px-6 py-6 border-b border-gray-800">
             <div class="flex items-center gap-3">
@@ -103,15 +102,12 @@
         </div>
     </aside>
 
-    <!-- MAIN -->
     <main class="flex-1 overflow-auto">
-        <!-- Header -->
         <div class="px-8 py-6 border-b border-gray-800 flex items-center justify-between" style="background:#111;">
             <div>
                 <h1 class="text-xl font-bold font-display text-white">Laporan Pendapatan</h1>
                 <p class="text-gray-500 text-sm mt-0.5">Rekap pendapatan berdasarkan reservasi yang dikonfirmasi</p>
             </div>
-            <!-- Filter Bulan -->
             <form method="GET" action="{{ route('admin.laporan') }}" class="flex items-center gap-3">
                 <select name="bulan" class="select-filter" onchange="this.form.submit()">
                     @for($m = 1; $m <= 12; $m++)
@@ -130,7 +126,6 @@
 
         <div class="px-8 py-8">
 
-            <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
                 <div class="stat-card p-6">
                     <div class="flex items-center justify-between mb-3">
@@ -140,7 +135,7 @@
                         </div>
                     </div>
                     <p class="text-3xl font-bold text-[#EAB308] font-display">Rp{{ number_format($totalPendapatan, 0, ',', '.') }}</p>
-                    <p class="text-gray-500 text-xs mt-1">{{ \Carbon\Carbon::create()->month((int)$bulan)->locale('id')->monthName }}{{ $tahun }}</p>
+                    <p class="text-gray-500 text-xs mt-1">{{ \Carbon\Carbon::create()->month((int)$bulan)->locale('id')->monthName }} {{ $tahun }}</p>
                 </div>
                 <div class="stat-card p-6">
                     <div class="flex items-center justify-between mb-3">
@@ -164,7 +159,6 @@
                 </div>
             </div>
 
-            <!-- Grafik -->
             @if(isset($grafikHarian) && count($grafikHarian) > 0)
             <div class="card p-6 mb-8">
                 <h2 class="text-base font-bold font-display mb-6">Grafik Pendapatan Harian</h2>
@@ -172,7 +166,6 @@
             </div>
             @endif
 
-            <!-- Tabel per Layanan -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div class="card p-6">
                     <h2 class="text-base font-bold font-display mb-4">Pendapatan per Layanan</h2>
@@ -183,7 +176,7 @@
                         @foreach($perLayanan as $l)
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3 flex-1">
-                                <div class="text-sm text-white font-medium">{{ $l->layanan }}</div>
+                                <div class="text-sm text-white font-medium">{{ $l->service }}</div>
                             </div>
                             <div class="text-right">
                                 <p class="text-[#EAB308] font-semibold text-sm">Rp{{ number_format($l->total, 0, ',', '.') }}</p>
@@ -198,7 +191,6 @@
                     @endif
                 </div>
 
-                <!-- Tabel Detail -->
                 <div class="card p-6">
                     <h2 class="text-base font-bold font-display mb-4">Transaksi Terbaru</h2>
                     @if(!isset($detailTransaksi) || $detailTransaksi->isEmpty())
@@ -208,8 +200,8 @@
                         @foreach($detailTransaksi as $t)
                         <div class="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
                             <div>
-                                <p class="text-white text-sm font-medium">{{ $t->nama }}</p>
-                                <p class="text-gray-500 text-xs">{{ $t->layanan }} · {{ \Carbon\Carbon::parse($t->tanggal)->format('d M') }}</p>
+                                <p class="text-white text-sm font-medium">{{ $t->name }}</p>
+                                <p class="text-gray-500 text-xs">{{ $t->service }} · {{ \Carbon\Carbon::parse($t->date)->format('d M') }}</p>
                             </div>
                             <p class="text-[#EAB308] font-semibold text-sm">Rp{{ number_format($t->harga ?? 0, 0, ',', '.') }}</p>
                         </div>
