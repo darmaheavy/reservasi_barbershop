@@ -231,37 +231,58 @@ class AdminController extends Controller
 
 
     // ─── Jadwal ───────────────────────────────────────
-// ─── Jadwal ───────────────────────────────────────
 public function jadwal()
-{
-    $jadwal = DB::table('jadwal')
-        ->orderBy('hari', 'asc')
-        ->get();
+    {
+        // Diurutkan berdasarkan hari jika ada kolom 'hari', atau langsung get()
+        $jadwal = DB::table('jadwal')->get();
 
-    return view('admin.jadwal', compact('jadwal'));
-}
+        return view('admin.jadwal', compact('jadwal'));
+    }
 
-public function updateJadwal(Request $request, $id)
-{
-    $request->validate([
-        'jam_buka'  => 'nullable|date_format:H:i',
-        'jam_tutup' => 'nullable|date_format:H:i|after:jam_buka',
-        'is_buka'   => 'required|boolean',
-    ]);
+    public function storeJadwal(Request $request)
+    {
+        $request->validate([
+            'nama_hari'  => 'required',
+            'jam_buka'   => 'nullable',
+            'jam_tutup'  => 'nullable',
+            'is_buka'    => 'required|boolean',
+        ]);
 
-    DB::table('jadwal')
-        ->where('id', $id)
-        ->update([
+        DB::table('jadwal')->insert([
+            'nama_hari'  => $request->nama_hari,
             'jam_buka'   => $request->jam_buka,
             'jam_tutup'  => $request->jam_tutup,
             'is_buka'    => $request->is_buka,
+            'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-    return back()->with('success', 'Jadwal berhasil diupdate!');
-}
-}
+        return back()->with('success', 'Jadwal baru berhasil ditambahkan!');
+    }
 
+    public function updateJadwal(Request $request, $id)
+    {
+        $request->validate([
+            'jam_buka'   => 'nullable',
+            'jam_tutup'  => 'nullable',
+            'is_buka'    => 'required|boolean',
+        ]);
 
-    // ─── Jadwal ───────────────────────────────────────
-   
+        DB::table('jadwal')
+            ->where('id', $id)
+            ->update([
+                'jam_buka'   => $request->jam_buka,
+                'jam_tutup'  => $request->jam_tutup,
+                'is_buka'    => $request->is_buka,
+                'updated_at' => now(),
+            ]);
+
+        return back()->with('success', 'Jadwal berhasil diupdate!');
+    }
+
+    public function deleteJadwal($id)
+    {
+        DB::table('jadwal')->where('id', $id)->delete();
+        return back()->with('success', 'Jadwal berhasil dihapus!');
+    }
+}
