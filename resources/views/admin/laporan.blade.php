@@ -6,6 +6,8 @@
     <title>Laporan Pendapatan — Mr. Brokker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'DM Sans', sans-serif; }
@@ -17,6 +19,8 @@
         .stat-card:hover { border-color: #EAB308; transform: translateY(-2px); }
         .select-filter { background: #222; border: 1px solid #333; border-radius: 8px; color: white; padding: 0.5rem 0.9rem; font-size: 0.875rem; outline: none; cursor: pointer; }
         .select-filter:focus { border-color: #EAB308; }
+        .btn-export { background: #EAB308; color: #000; border: none; border-radius: 8px; padding: 0.5rem 1.1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; transition: all 0.2s; }
+        .btn-export:hover { background: #ca9e06; }
     </style>
 </head>
 <body style="background:#0e0e0e; color:white;">
@@ -114,20 +118,26 @@
                 <h1 class="text-xl font-bold font-display text-white">Laporan Pendapatan</h1>
                 <p class="text-gray-500 text-sm mt-0.5">Rekap pendapatan berdasarkan reservasi yang dikonfirmasi</p>
             </div>
-            <form method="GET" action="{{ route('admin.laporan') }}" class="flex items-center gap-3">
-                <select name="bulan" class="select-filter" onchange="this.form.submit()">
-                    @for($m = 1; $m <= 12; $m++)
-                        <option value="{{ $m }}" {{ $bulan == $m ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($m)->locale('id')->monthName }}
-                        </option>
-                    @endfor
-                </select>
-                <select name="tahun" class="select-filter" onchange="this.form.submit()">
-                    @for($y = \Carbon\Carbon::now()->year; $y >= \Carbon\Carbon::now()->year - 2; $y--)
-                        <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
-                    @endfor
-                </select>
-            </form>
+            <div class="flex items-center gap-3">
+                <form method="GET" action="{{ route('admin.laporan') }}" class="flex items-center gap-3">
+                    <select name="bulan" class="select-filter" onchange="this.form.submit()">
+                        @for($m = 1; $m <= 12; $m++)
+                            <option value="{{ $m }}" {{ $bulan == $m ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create()->month($m)->locale('id')->monthName }}
+                            </option>
+                        @endfor
+                    </select>
+                    <select name="tahun" class="select-filter" onchange="this.form.submit()">
+                        @for($y = \Carbon\Carbon::now()->year; $y >= \Carbon\Carbon::now()->year - 2; $y--)
+                            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </form>
+                <button class="btn-export" onclick="exportPDF()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export PDF
+                </button>
+            </div>
         </div>
 
         <div class="px-8 py-8">
@@ -221,6 +231,21 @@
     </main>
 </div>
 
+{{-- Data untuk dikirim ke JavaScript --}}
+<script>
+    // Data dari Laravel (digunakan untuk PDF export)
+    const laporanData = {
+        namaBulan: "{{ \Carbon\Carbon::create()->month((int)$bulan)->locale('id')->translatedFormat('F') }}",
+        tahun: "{{ $tahun }}",
+        totalPendapatan: {{ $totalPendapatan }},
+        totalReservasi: {{ $totalReservasi }},
+        rataRata: {{ $totalReservasi > 0 ? intval($totalPendapatan / $totalReservasi) : 0 }},
+        grafikHarian: @json($grafikHarian ?? []),
+        perLayanan: @json($perLayanan ?? []),
+        detailTransaksi: @json($detailTransaksi ?? []),
+    };
+</script>
+
 @if(isset($grafikHarian) && count($grafikHarian) > 0)
 <script>
 const ctx = document.getElementById('grafikPendapatan').getContext('2d');
@@ -267,6 +292,120 @@ new Chart(ctx, {
 });
 </script>
 @endif
+
+<script>
+function formatRupiah(angka) {
+    return 'Rp' + Number(angka).toLocaleString('id-ID');
+}
+
+function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const contentW = pageW - margin * 2;
+
+    // ─── HEADER ───────────────────────────────────────────────
+
+    // Nama perusahaan & judul
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0);
+    doc.text('Mr. Brokerr', pageW / 2, 17, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.text('LAPORAN PENDAPATAN', pageW / 2, 23, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+        'Bulan ' + laporanData.namaBulan.toUpperCase() + ' Tahun ' + laporanData.tahun,
+        pageW / 2, 29, { align: 'center' }
+    );
+
+    let cursorY = 38;
+
+    // ─── TABEL HARIAN ─────────────────────────────────────────
+    const harian = laporanData.grafikHarian;
+    const jumlahHari = new Date(laporanData.tahun, new Date(Date.parse(laporanData.namaBulan + ' 1, ' + laporanData.tahun)).getMonth() + 1, 0).getDate();
+
+    // Buat peta data harian dari grafikHarian
+    const harianMap = {};
+    harian.forEach(d => { harianMap[d.tanggal] = d; });
+
+    // Buat rows per tanggal (1 sampai akhir bulan)
+    const bulanIndex = new Date(Date.parse(laporanData.namaBulan + ' 1, ' + laporanData.tahun)).getMonth() + 1;
+    const tableRows = [];
+
+    for (let hari = 1; hari <= jumlahHari; hari++) {
+        const tgl = String(hari) + ' ' + laporanData.namaBulan + ' ' + laporanData.tahun;
+        // Cari data yang cocok
+        const cocok = harian.find(d => {
+            const parsed = new Date(d.tanggal);
+            return parsed.getDate() === hari;
+        });
+        const jumlahTrx = cocok ? (cocok.jumlah ?? '') : '';
+        const pendapatan = cocok ? formatRupiah(cocok.total) : '';
+        tableRows.push([hari + ' ' + laporanData.namaBulan + ' ' + laporanData.tahun, jumlahTrx, pendapatan]);
+    }
+
+    // Baris total di bawah
+    tableRows.push([
+        { content: '', styles: { fillColor: [255,255,255] } },
+        { content: 'TOTAL PENDAPATAN', colSpan: 1, styles: { fontStyle: 'bold', halign: 'right', fillColor: [245,245,245] } },
+        { content: formatRupiah(laporanData.totalPendapatan), styles: { fontStyle: 'bold', fillColor: [245,245,245] } }
+    ]);
+
+    doc.autoTable({
+        startY: cursorY,
+        head: [[
+            { content: 'TANGGAL', styles: { halign: 'left' } },
+            { content: 'JUMLAH TRANSAKSI', styles: { halign: 'center' } },
+            { content: 'JUMLAH PENDAPATAN', styles: { halign: 'right' } }
+        ]],
+        body: tableRows,
+        margin: { left: margin, right: margin },
+        tableWidth: contentW,
+        styles: {
+            fontSize: 9,
+            cellPadding: { top: 3, bottom: 3, left: 4, right: 4 },
+            lineColor: [0, 0, 0],
+            lineWidth: 0.3,
+            textColor: [0, 0, 0],
+            font: 'helvetica',
+        },
+        headStyles: {
+            fillColor: [255, 255, 255],
+            textColor: [0, 0, 0],
+            fontStyle: 'bold',
+            fontSize: 9,
+            lineWidth: 0.3,
+            lineColor: [0, 0, 0],
+        },
+        bodyStyles: {
+            fillColor: [255, 255, 255],
+        },
+        alternateRowStyles: {
+            fillColor: [255, 255, 255],
+        },
+        columnStyles: {
+            0: { cellWidth: 55 },
+            1: { cellWidth: 55, halign: 'center' },
+            2: { halign: 'right' },
+        },
+        didParseCell: function(data) {
+            // Baris terakhir (total)
+            if (data.row.index === tableRows.length - 1) {
+                data.cell.styles.fontStyle = 'bold';
+            }
+        }
+    });
+
+    const fileName = 'Laporan_Pendapatan_' + laporanData.namaBulan + '_' + laporanData.tahun + '.pdf';
+    doc.save(fileName);
+}
+</script>
 
 </body>
 </html>
