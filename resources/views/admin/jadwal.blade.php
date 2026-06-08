@@ -247,8 +247,8 @@
 
     <div class="jadwal-row border-b border-gray-800/40 last:border-0">
 
-        <form action="{{ route('admin.jadwal.update', $j->id) }}"
-              method="POST">
+        <form class="jadwal-form" action="{{ route('admin.jadwal.update', $j->id) }}" data-id="{{ $j->id }}"
+              method="POST" data-id="{{ $j->id }}">
 
             @csrf
             @method('PUT')
