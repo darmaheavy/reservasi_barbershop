@@ -164,17 +164,42 @@
             <div class="space-y-4">
                 @foreach($antrian as $i => $r)
                 @php
-                    $jamReservasi = \Carbon\Carbon::parse($r->jam);
-                    $sekarang = \Carbon\Carbon::now();
-                    $isNow = $sekarang->format('H') == $jamReservasi->format('H');
+    // Set zona waktu eksekusi agar seragam (Ganti Asia/Makassar jika ingin WITA)
+    $timezone = 'Asia/Makassar'; 
+    
+    $jamReservasi = \Carbon\Carbon::parse($r->jam, $timezone);
+    $sekarang = \Carbon\Carbon::now($timezone);
+    $isNow = $sekarang->format('H') == $jamReservasi->format('H');
 
-                    // Membersihkan format nomor WA untuk API WhatsApp
-                    $phone = preg_replace('/[^0-9]/', '', $r->whatsapp);
-                    if (str_starts_with($phone, '0')) {
-                        $phone = '62' . substr($phone, 1);
-                    }
-                    $waUrl = "https://wa.me/{$phone}?text=" . urlencode("Halo {$r->nama}, kami dari Mr. Brokker Barbershop ingin mengonfirmasi antrian Anda pada jam {$r->jam}.");
-                @endphp
+    // Membersihkan format nomor WA
+    $phone = preg_replace('/[^0-9]/', '', $r->whatsapp);
+    if (str_starts_with($phone, '0')) {
+        $phone = '62' . substr($phone, 1);
+    }
+    
+    $waUrl = "https://wa.me/{$phone}?text=" . urlencode("Halo {$r->nama}, kami dari Mr. Brokker Barbershop ingin mengonfirmasi antrian Anda pada jam {$r->jam}.");
+
+    // Satukan tanggal hari ini dengan jam booking pelanggan menggunakan timezone yang dikunci
+    $waktuBookingFull = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $r->tanggal . ' ' . $r->jam, $timezone);
+    
+    // Hitung selisih menit murni dari sekarang ke waktu booking
+    $selisihMenitMurni = $sekarang->diffInMinutes($waktuBookingFull, false);
+    $selisihJamAbsolut = ceil(abs($selisihMenitMurni) / 60);
+
+    // JIKA sekarang LEBIH KECIL (LT) dari waktu booking, berarti belum lewat
+    if ($sekarang->lt($waktuBookingFull)) {
+        $teksTombol = "Kirim Pengingat ({$selisihJamAbsolut} Jam Lagi)";
+        $pesanWhatsapp = "Halo {$r->nama}, ini pengingat otomatis dari Mr. Brokker Barbershop. Jadwal booking Anda adalah hari ini pada jam *{$r->jam}*.\n\n" .
+                         "*Catatan Penting:* Batas maksimal keterlambatan kehadiran adalah *5 menit*. Jika melewati batas keterlambatan tersebut, maka booking Anda akan dianggap *HANGUS* oleh sistem. Terima kasih.";
+    } else {
+        // Jika sudah sama atau melewati waktu booking
+        $teksTombol = "Peringatan Keterlambatan";
+        $pesanWhatsapp = "Halo {$r->nama}, jadwal booking Anda pada jam *{$r->jam}* saat ini terpantau sudah berjalan.\n\n" .
+                         "Kami mengingatkan kembali bahwa batas maksimal toleransi keterlambatan adalah *5 menit*. Jika Anda melewati batas waktu tersebut dan belum melakukan check-in di toko, maka booking Anda otomatis dianggap *HANGUS*. Terima kasih.";
+    }
+
+    $waUrlReminder = "https://wa.me/{$phone}?text=" . urlencode($pesanWhatsapp);
+@endphp 
                 <div class="antrian-card p-5 {{ $isNow && $r->status === 'confirmed' ? 'active-now' : '' }}">
                     <div class="flex items-center justify-between flex-wrap gap-4">
 
@@ -192,13 +217,22 @@
                                 </div>
                                 <p class="text-gray-400 text-sm mt-0.5">{{ $r->layanan }}</p>
                                 
-                                {{-- TOMBOL CHAT WHATSAPP --}}
+                                {{-- AREA TOMBOL CHAT WHATSAPP --}}
                                 @if($r->whatsapp)
-                                    <div class="mt-2">
+                                    <div class="mt-2 flex items-center gap-2 flex-wrap">
+                                        <!-- Tombol Konfirmasi Utama -->
                                         <a href="{{ $waUrl }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-500 text-[11px] font-bold transition border border-green-500/20">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                                             Chat WhatsApp
                                         </a>
+
+                                        <!-- Tombol Pengingat / Peringatan Dinamis (Hanya Muncul di Status Terkonfirmasi) -->
+                                        @if($r->status === 'confirmed')
+                                            <a href="{{ $waUrlReminder }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 text-[11px] font-bold transition border border-amber-500/30">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                                                🔔 {{ $teksTombol }}
+                                            </a>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -207,7 +241,7 @@
                         <div class="flex items-center gap-6">
                             <div class="text-center">
                                 <p class="text-[#EAB308] text-xl font-bold font-display">{{ \Carbon\Carbon::parse($r->jam)->format('H:i') }}</p>
-                                <p class="text-gray-500 text-xs">WIB</p>
+                                <p class="text-gray-500 text-xs">WITA</p>
                             </div>
 
                             <div>
@@ -254,13 +288,17 @@
                             @php
                                 $phoneMendatang = preg_replace('/[^0-9]/', '', $r->whatsapp);
                                 if (str_starts_with($phoneMendatang, '0')) { $phoneMendatang = '62' . substr($phoneMendatang, 1); }
-                                $waUrlMendatang = "https://wa.me/{$phoneMendatang}?text=" . urlencode("Halo {$r->nama}, kami mengonfirmasi reservasi Anda tanggal {$r->tanggal} jam {$r->jam}.");
+                                
+                                // Sinkronisasi aturan hangus 5 menit pada tabel reservasi mendatang
+                                $pesanMendatang = "Halo {$r->nama}, kami dari Mr. Brokker mengonfirmasi reservasi Anda tanggal {$r->tanggal} jam {$r->jam}.\n\n" .
+                                                  "*Catatan Penting:* Batas maksimal keterlambatan kehadiran adalah *5 menit*. Jika melewati batas keterlambatan tersebut, maka booking Anda akan dianggap *HANGUS* oleh sistem.";
+                                $waUrlMendatang = "https://wa.me/{$phoneMendatang}?text=" . urlencode($pesanMendatang);
                             @endphp
                             <tr>
                                 <td class="py-3 px-5 text-white font-medium">{{ $r->nama }}</td>
                                 <td class="py-3 px-5 text-gray-400">{{ $r->layanan }}</td>
                                 <td class="py-3 px-5 text-gray-400">{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</td>
-                                <td class="py-3 px-5 text-[#EAB308] font-semibold">{{ \Carbon\Carbon::parse($r->jam)->format('H:i') }} WIB</td>
+                                <td class="py-3 px-5 text-[#EAB308] font-semibold">{{ \Carbon\Carbon::parse($r->jam)->format('H:i') }} WITA</td>
                                 <td class="py-3 px-5">
                                     <a href="{{ $waUrlMendatang }}" target="_blank" class="text-green-500 hover:text-green-400 flex items-center gap-1 font-bold text-xs">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>

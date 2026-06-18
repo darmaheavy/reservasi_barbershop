@@ -152,7 +152,7 @@
         </td>
         <td class="py-4 pr-4 text-gray-400">
             <p>{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</p>
-            <p class="text-xs text-gray-500">{{ $r->jam }} WIB</p>
+            <p class="text-xs text-gray-500">{{ $r->jam }} WITA</p>
         </td>
         <td class="py-4 pr-4 text-gray-400">
             {{ $r->whatsapp ?? '-' }}
