@@ -18,7 +18,7 @@
 
 <div class="flex min-h-screen">
 
-    <!-- SIDEBAR (Tetap sama) -->
+    <!-- SIDEBAR -->
     <aside class="w-64 shrink-0 flex flex-col" style="background:#111; border-right: 1px solid #222;">
         <div class="px-6 py-6 border-b border-gray-800">
             <div class="flex items-center gap-3">
@@ -142,77 +142,96 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-800">
-    @foreach($reservations as $r)
-    <tr>
-        <td class="py-4 pr-4">
-            <p class="text-white font-medium">{{ $r->nama }}</p>
-        </td>
-        <td class="py-4 pr-4 text-gray-400">
-            {{ $r->layanan }}
-        </td>
-        <td class="py-4 pr-4 text-gray-400">
-            <p>{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</p>
-            <p class="text-xs text-gray-500">{{ $r->jam }} WITA</p>
-        </td>
-        <td class="py-4 pr-4 text-gray-400">
-            {{ $r->whatsapp ?? '-' }}
-        </td>
-        
-        <td class="py-4 pr-4">
-            @if($r->status === 'confirmed')
-                <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(34,197,94,0.15);color:#22c55e;">Dikonfirmasi</span>
-            @elseif($r->status === 'cancelled')
-                <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(239,68,68,0.15);color:#ef4444;">Dibatalkan</span>
-            @elseif($r->status === 'selesai')
-                <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(59,130,246,0.15);color:#3b82f6;">Selesai</span>
-            @else
-                <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(234,179,8,0.15);color:#EAB308;">Menunggu</span>
-            @endif
-        </td>
+                            @foreach($reservations as $r)
+                            <tr>
+                                <td class="py-4 pr-4">
+                                    <p class="text-white font-medium">{{ $r->nama }}</p>
+                                </td>
+                                <td class="py-4 pr-4 text-gray-400">
+                                    {{ $r->layanan }}
+                                </td>
+                                <td class="py-4 pr-4 text-gray-400">
+                                    <p>{{ \Carbon\Carbon::parse($r->tanggal)->format('d M Y') }}</p>
+                                    <p class="text-xs text-gray-500">{{ $r->jam }} WITA</p>
+                                </td>
+                                <td class="py-4 pr-4 text-gray-400">
+                                    {{ $r->whatsapp ?? '-' }}
+                                </td>
 
-        <td class="py-4">
-            <div class="flex items-center gap-2">
-                
-                @if($r->status === 'pending' || $r->status === null)
-                    <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST">
-                        @csrf @method('PUT')
-                        <input type="hidden" name="status" value="confirmed">
-                        <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">
-                            ✓ Terima
-                        </button>
-                    </form>
+                                <td class="py-4 pr-4">
+                                    @if($r->status === 'confirmed')
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(34,197,94,0.15);color:#22c55e;">Dikonfirmasi</span>
+                                    @elseif($r->status === 'serving')
+                                        {{-- Status baru: Sedang Dilayani --}}
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit" style="background:rgba(15, 255, 15, 0.15);color:#FFFFFF;border:1px solid rgba(68, 255, 0, 0.25);">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
+                                            Sedang Dilayani
+                                        </span>
+                                    @elseif($r->status === 'cancelled')
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(239,68,68,0.15);color:#ef4444;">Dibatalkan</span>
+                                    @elseif($r->status === 'selesai')
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(59,130,246,0.15);color:#3b82f6;">Selesai</span>
+                                    @else
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold" style="background:rgba(234,179,8,0.15);color:#EAB308;">Menunggu</span>
+                                    @endif
+                                </td>
 
-                    <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST">
-                        @csrf @method('PUT')
-                        <input type="hidden" name="status" value="cancelled">
-                        <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">
-                            ✕ Tolak
-                        </button>
-                    </form>
+                                <td class="py-4">
+                                    <div class="flex items-center gap-2">
 
-                @elseif($r->status === 'confirmed')
-                    <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST" onsubmit="return confirm('Pelayanan selesai dan pelanggan sudah membayar?')">
-                        @csrf @method('PUT')
-                        <input type="hidden" name="status" value="selesai">
-                        <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);">
-                            ✓ Selesai
-                        </button>
-                    </form>
+                                        {{-- PENDING: Terima / Tolak --}}
+                                        @if($r->status === 'pending' || $r->status === null)
+                                            <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <input type="hidden" name="status" value="confirmed">
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">
+                                                    ✓ Terima
+                                                </button>
+                                            </form>
 
-                @else
-                    <form action="{{ route('admin.reservations.delete', $r->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data riwayat ini?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);">
-                            🗑 Hapus Arsip
-                        </button>
-                    </form>
-                @endif
+                                            <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <input type="hidden" name="status" value="cancelled">
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">
+                                                    ✕ Tolak
+                                                </button>
+                                            </form>
 
-            </div>
-        </td>
-    </tr>
-    @endforeach
-</tbody>
+                                        {{-- CONFIRMED: Tandai Sedang Dilayani --}}
+                                        @elseif($r->status === 'confirmed')
+                                            <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <input type="hidden" name="status" value="serving">
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">
+                                                    ✂ Layani
+                                                </button>
+                                            </form>
+
+                                        {{-- SERVING: Tandai Selesai --}}
+                                        @elseif($r->status === 'serving')
+                                            <form action="{{ route('admin.reservations.status', $r->id) }}" method="POST" onsubmit="return confirm('Pelayanan selesai dan pelanggan sudah membayar?')">
+                                                @csrf @method('PUT')
+                                                <input type="hidden" name="status" value="selesai">
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);">
+                                                    ✓ Selesai
+                                                </button>
+                                            </form>
+
+                                        {{-- SELESAI / CANCELLED: Hapus Arsip --}}
+                                        @else
+                                            <form action="{{ route('admin.reservations.delete', $r->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data riwayat ini?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80" style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2);">
+                                                    🗑 Hapus Arsip
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
                     </table>
                 </div>
 
