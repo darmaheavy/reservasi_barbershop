@@ -132,58 +132,74 @@ class AdminController extends Controller
     // ─── Laporan ───────────────────────────────────────
     public function laporan(Request $request)
     {
+        // ── Ambil parameter filter ──────────────────────────────────
+        $dari   = $request->input('dari');   // format: Y-m-d (opsional)
+        $sampai = $request->input('sampai'); // format: Y-m-d (opsional)
+
         $bulan = (int) ($request->bulan ?? Carbon::now()->month);
         $tahun = (int) ($request->tahun ?? Carbon::now()->year);
 
-        // 1. TOTAL PENDAPATAN (Menggunakan EXTRACT & COALESCE standar PostgreSQL)
+        // ── Tentukan rentang tanggal ────────────────────────────────
+        if ($dari && $sampai) {
+            $tglMulai = Carbon::parse($dari)->startOfDay();
+            $tglAkhir = Carbon::parse($sampai)->endOfDay();
+
+            // Update bulan/tahun untuk label view
+            $bulan = $tglMulai->month;
+            $tahun = $tglMulai->year;
+        } else {
+            $tglMulai = Carbon::create($tahun, $bulan, 1)->startOfDay();
+            $tglAkhir = Carbon::create($tahun, $bulan, 1)->endOfMonth()->endOfDay();
+            $dari   = null;
+            $sampai = null;
+        }
+
+        // ── Base join yang dipakai semua query ──────────────────────
+        // Kolom asli: bookings.tanggal, bookings.nama, bookings.layanan
+        // Status selesai sesuai controller lama
+        $baseWhere = function ($q) use ($tglMulai, $tglAkhir) {
+            $q->leftJoin('layanan', 'bookings.layanan', '=', 'layanan.nama')
+              ->whereBetween('bookings.tanggal', [$tglMulai, $tglAkhir])
+              ->where('bookings.status', 'selesai');
+        };
+
+        // 1. TOTAL PENDAPATAN
         $totalPendapatan = DB::table('bookings')
-            ->leftJoin('layanan', 'bookings.layanan', '=', 'layanan.nama')
-            ->whereRaw('EXTRACT(MONTH FROM bookings.tanggal) = ?', [$bulan])
-            ->whereRaw('EXTRACT(YEAR FROM bookings.tanggal) = ?', [$tahun])
-            ->where('bookings.status', 'selesai')
+            ->tap($baseWhere)
             ->sum(DB::raw('COALESCE(layanan.harga, 0)'));
 
         // 2. TOTAL RESERVASI SELESAI
-        $totalReservasi = Booking::whereRaw('EXTRACT(MONTH FROM tanggal) = ?', [$bulan])
-            ->whereRaw('EXTRACT(YEAR FROM tanggal) = ?', [$tahun])
-            ->where('status', 'selesai')
+        $totalReservasi = DB::table('bookings')
+            ->tap($baseWhere)
             ->count();
 
         // 3. PENDAPATAN PER LAYANAN
         $perLayanan = DB::table('bookings')
-            ->leftJoin('layanan', 'bookings.layanan', '=', 'layanan.nama')
-            ->whereRaw('EXTRACT(MONTH FROM bookings.tanggal) = ?', [$bulan])
-            ->whereRaw('EXTRACT(YEAR FROM bookings.tanggal) = ?', [$tahun])
-            ->where('bookings.status', 'selesai')
+            ->tap($baseWhere)
             ->selectRaw('bookings.layanan as service, SUM(COALESCE(layanan.harga, 0)) as total, COUNT(*) as jumlah')
             ->groupBy('bookings.layanan')
             ->orderByDesc('total')
             ->get();
 
-        // 4. DETAIL TRANSAKSI TERBARU
+        // 4. DETAIL TRANSAKSI
         $detailTransaksi = DB::table('bookings')
-            ->leftJoin('layanan', 'bookings.layanan', '=', 'layanan.nama')
-            ->whereRaw('EXTRACT(MONTH FROM bookings.tanggal) = ?', [$bulan])
-            ->whereRaw('EXTRACT(YEAR FROM bookings.tanggal) = ?', [$tahun])
-            ->where('bookings.status', 'selesai')
+            ->tap($baseWhere)
             ->selectRaw('bookings.nama as name, bookings.layanan as service, bookings.tanggal as date, COALESCE(layanan.harga, 0) as harga')
             ->orderByDesc('bookings.tanggal')
-            ->limit(10)
             ->get();
 
         // 5. GRAFIK HARIAN
         $grafikHarian = DB::table('bookings')
-            ->leftJoin('layanan', 'bookings.layanan', '=', 'layanan.nama')
-            ->whereRaw('EXTRACT(MONTH FROM bookings.tanggal) = ?', [$bulan])
-            ->whereRaw('EXTRACT(YEAR FROM bookings.tanggal) = ?', [$tahun])
-            ->where('bookings.status', 'selesai')
-            ->selectRaw('DATE(bookings.tanggal) as tanggal, SUM(COALESCE(layanan.harga, 0)) as total')
+            ->tap($baseWhere)
+            ->selectRaw('DATE(bookings.tanggal) as tanggal, SUM(COALESCE(layanan.harga, 0)) as total, COUNT(*) as jumlah')
             ->groupBy(DB::raw('DATE(bookings.tanggal)'))
             ->orderBy('tanggal')
             ->get();
 
         return view('admin.laporan', compact(
-            'bulan', 'tahun', 'totalPendapatan', 'totalReservasi',
+            'dari', 'sampai',
+            'bulan', 'tahun',
+            'totalPendapatan', 'totalReservasi',
             'perLayanan', 'detailTransaksi', 'grafikHarian'
         ));
     }
