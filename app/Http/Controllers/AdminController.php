@@ -101,50 +101,45 @@ class AdminController extends Controller
 
     // ─── Antrian ───────────────────────────────────────
     public function antrian()
-{
-    $today = Carbon::today()->toDateString();
+    {
+        $today = Carbon::today()->toDateString();
 
-    // Hapus 'selesai' agar daftar antrean harian murni berisi pelanggan yang belum diproses / sedang berjalan
-    $antrian = Booking::whereDate('tanggal', $today)
-        ->whereIn('status', ['pending', 'confirmed']) 
-        ->orderBy('jam', 'asc')
-        ->get();
+        $antrian = Booking::whereDate('tanggal', $today)
+            ->whereIn('status', ['pending', 'confirmed']) 
+            ->orderBy('jam', 'asc')
+            ->get();
 
-    $mendatang = Booking::whereDate('tanggal', '>', $today)
-        ->whereIn('status', ['pending', 'confirmed'])
-        ->orderBy('tanggal', 'asc')
-        ->orderBy('jam', 'asc')
-        ->take(10)
-        ->get();
+        $mendatang = Booking::whereDate('tanggal', '>', $today)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('jam', 'asc')
+            ->take(10)
+            ->get();
 
-    $totalHariIni = Booking::whereDate('tanggal', $today)->count();
-    $pending      = Booking::whereDate('tanggal', $today)->where('status', 'pending')->count();
-    $confirmed    = Booking::whereDate('tanggal', $today)->where('status', 'confirmed')->count();
-    $cancelled    = Booking::whereDate('tanggal', $today)->where('status', 'cancelled')->count();
-    $selesai      = Booking::whereDate('tanggal', $today)->where('status', 'selesai')->count();
+        $totalHariIni = Booking::whereDate('tanggal', $today)->count();
+        $pending      = Booking::whereDate('tanggal', $today)->where('status', 'pending')->count();
+        $confirmed    = Booking::whereDate('tanggal', $today)->where('status', 'confirmed')->count();
+        $cancelled    = Booking::whereDate('tanggal', $today)->where('status', 'cancelled')->count();
+        $selesai      = Booking::whereDate('tanggal', $today)->where('status', 'selesai')->count();
 
-    return view('admin.antrian', compact(
-        'antrian', 'mendatang', 'totalHariIni',
-        'pending', 'confirmed', 'cancelled', 'selesai'
-    ));
-}
+        return view('admin.antrian', compact(
+            'antrian', 'mendatang', 'totalHariIni',
+            'pending', 'confirmed', 'cancelled', 'selesai'
+        ));
+    }
 
     // ─── Laporan ───────────────────────────────────────
     public function laporan(Request $request)
     {
-        // ── Ambil parameter filter ──────────────────────────────────
-        $dari   = $request->input('dari');   // format: Y-m-d (opsional)
-        $sampai = $request->input('sampai'); // format: Y-m-d (opsional)
+        $dari   = $request->input('dari');   
+        $sampai = $request->input('sampai'); 
 
         $bulan = (int) ($request->bulan ?? Carbon::now()->month);
         $tahun = (int) ($request->tahun ?? Carbon::now()->year);
 
-        // ── Tentukan rentang tanggal ────────────────────────────────
         if ($dari && $sampai) {
             $tglMulai = Carbon::parse($dari)->startOfDay();
             $tglAkhir = Carbon::parse($sampai)->endOfDay();
-
-            // Update bulan/tahun untuk label view
             $bulan = $tglMulai->month;
             $tahun = $tglMulai->year;
         } else {
@@ -154,26 +149,15 @@ class AdminController extends Controller
             $sampai = null;
         }
 
-        // ── Base join yang dipakai semua query ──────────────────────
-        // Kolom asli: bookings.tanggal, bookings.nama, bookings.layanan
-        // Status selesai sesuai controller lama
         $baseWhere = function ($q) use ($tglMulai, $tglAkhir) {
             $q->leftJoin('layanan', 'bookings.layanan', '=', 'layanan.nama')
               ->whereBetween('bookings.tanggal', [$tglMulai, $tglAkhir])
               ->where('bookings.status', 'selesai');
         };
 
-        // 1. TOTAL PENDAPATAN
-        $totalPendapatan = DB::table('bookings')
-            ->tap($baseWhere)
-            ->sum(DB::raw('COALESCE(layanan.harga, 0)'));
+        $totalPendapatan = DB::table('bookings')->tap($baseWhere)->sum(DB::raw('COALESCE(layanan.harga, 0)'));
+        $totalReservasi = DB::table('bookings')->tap($baseWhere)->count();
 
-        // 2. TOTAL RESERVASI SELESAI
-        $totalReservasi = DB::table('bookings')
-            ->tap($baseWhere)
-            ->count();
-
-        // 3. PENDAPATAN PER LAYANAN
         $perLayanan = DB::table('bookings')
             ->tap($baseWhere)
             ->selectRaw('bookings.layanan as service, SUM(COALESCE(layanan.harga, 0)) as total, COUNT(*) as jumlah')
@@ -181,14 +165,12 @@ class AdminController extends Controller
             ->orderByDesc('total')
             ->get();
 
-        // 4. DETAIL TRANSAKSI
         $detailTransaksi = DB::table('bookings')
             ->tap($baseWhere)
             ->selectRaw('bookings.nama as name, bookings.layanan as service, bookings.tanggal as date, COALESCE(layanan.harga, 0) as harga')
             ->orderByDesc('bookings.tanggal')
             ->get();
 
-        // 5. GRAFIK HARIAN
         $grafikHarian = DB::table('bookings')
             ->tap($baseWhere)
             ->selectRaw('DATE(bookings.tanggal) as tanggal, SUM(COALESCE(layanan.harga, 0)) as total, COUNT(*) as jumlah')
@@ -197,8 +179,7 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.laporan', compact(
-            'dari', 'sampai',
-            'bulan', 'tahun',
+            'dari', 'sampai', 'bulan', 'tahun',
             'totalPendapatan', 'totalReservasi',
             'perLayanan', 'detailTransaksi', 'grafikHarian'
         ));
@@ -245,13 +226,10 @@ class AdminController extends Controller
         return back()->with('success', 'Foto berhasil dihapus!');
     }
 
-
     // ─── Jadwal ───────────────────────────────────────
-public function jadwal()
+    public function jadwal()
     {
-        // Diurutkan berdasarkan hari jika ada kolom 'hari', atau langsung get()
         $jadwal = DB::table('jadwal')->get();
-
         return view('admin.jadwal', compact('jadwal'));
     }
 
@@ -278,12 +256,47 @@ public function jadwal()
 
     public function updateJadwal(Request $request, $id)
     {
+        // 1. Validasi request ditaruh paling atas
         $request->validate([
             'jam_buka'   => 'nullable',
             'jam_tutup'  => 'nullable',
             'is_buka'    => 'required|boolean',
         ]);
 
+        // 2. Periksa konflik jika admin tidak melakukan "force_update"
+        if (!$request->has('force_update')) {
+            
+            // Ambil data jadwal saat ini untuk mendeteksi ID hari (0 = Minggu, 1 = Senin, dst)
+            $jadwal = DB::table('jadwal')->where('id', $id)->first();
+            
+            // Query dasar mencari reservasi aktif pelanggan pada hari tersebut
+            $conflictsQuery = Booking::whereIn('status', ['pending', 'confirmed'])
+             ->whereRaw("EXTRACT(DOW FROM tanggal) = ?", [$jadwal->hari]);
+            // Kondisi A: Jika statusnya TETAP BUKA, cek jam operasional yang memotong/berada di luar jam baru
+            if ($request->is_buka == 1) {
+                $conflictsQuery->where(function($q) use ($request) {
+                    $q->whereTime('jam', '<', $request->jam_buka)
+                      ->orWhereTime('jam', '>', $request->jam_tutup);
+                });
+                $message = "Terdapat :count reservasi aktif pelanggan yang berada di luar jam operasional baru Anda.";
+            } 
+            // Kondisi B: Jika diubah menjadi TUTUP, semua reservasi aktif pada hari itu dianggap konflik
+            else {
+                $message = "Terdapat :count reservasi aktif pelanggan pada hari tersebut. Jika Anda menutup hari ini, jadwal booking mereka akan terdampak.";
+            }
+
+            $conflicts = $conflictsQuery->get();
+
+            // Jika ditemukan data reservasi yang terdampak, batalkan proses & kirim data konflik ke session view
+            if ($conflicts->count() > 0) {
+                return back()->withInput()
+                    ->with('conflict_data', $conflicts)
+                    ->with('current_jadwal_id', $id) 
+                    ->with('conflict_message', str_replace(':count', $conflicts->count(), $message));
+            }
+        }
+
+        // 3. Jika tidak ada konflik (atau admin klik "Ya, Tetap Simpan"), jalankan proses update database
         DB::table('jadwal')
             ->where('id', $id)
             ->update([

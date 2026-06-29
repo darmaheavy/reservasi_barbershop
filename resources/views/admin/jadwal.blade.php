@@ -57,6 +57,12 @@
         }
         .input-time:focus { border-color: #EAB308; }
         .input-time:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        /* Styling Scrollbar Kecil untuk List Konflik */
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 99px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #444; }
     </style>
 </head>
 <body style="background:#0e0e0e; color:white;">
@@ -176,209 +182,208 @@
                 </div>
             @endif
 
-         {{-- ───────────────── INFO BANNER ───────────────── --}}
-<div class="mb-6 flex items-start gap-3 px-5 py-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-         stroke="#EAB308" stroke-width="2"
-         class="shrink-0 mt-0.5">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-
-    <p class="text-yellow-200/70 text-xs leading-relaxed">
-        Admin dapat mengubah jadwal operasional dan status buka/tutup barbershop secara langsung.
-    </p>
-</div>
-
-
-
-{{-- ───────────────── JADWAL CARD ───────────────── --}}
-<div class="stat-card overflow-hidden">
-
-    {{-- Card Header --}}
-    <div class="px-6 py-5 border-b border-gray-800 flex items-center gap-3">
-
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-             style="background:rgba(234,179,8,0.15);">
-
-            <svg width="16"
-                 height="16"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="#EAB308"
-                 stroke-width="2">
-
-                <rect x="3" y="4" width="18" height="18" rx="2"/>
-                <path d="M16 2v4M8 2v4M3 10h18"/>
-
-            </svg>
-
-        </div>
-
-        <div>
-            <p class="text-white font-semibold text-sm">
-                Jadwal Operasional
-            </p>
-
-            <p class="text-gray-500 text-xs">
-                Edit jadwal operasional barbershop
-            </p>
-        </div>
-
-    </div>
-
-    {{-- Table Header --}}
-    <div class="grid px-6 py-3 border-b border-gray-800/60
-                text-xs font-semibold uppercase tracking-wider text-gray-500"
-         style="grid-template-columns: 130px 90px 90px 110px 100px 120px;">
-
-        <span>Hari</span>
-        <span>Status</span>
-        <span>Jam Buka</span>
-        <span>Jam Tutup</span>
-        <span>Slot</span>
-        <span>Aksi</span>
-
-    </div>
-
-    {{-- Rows --}}
-    @foreach($jadwal as $j)
-
-    <div class="jadwal-row border-b border-gray-800/40 last:border-0">
-
-        <form class="jadwal-form" action="{{ route('admin.jadwal.update', $j->id) }}" data-id="{{ $j->id }}"
-              method="POST" data-id="{{ $j->id }}">
-
-            @csrf
-            @method('PUT')
-
-            <div class="grid items-center px-6 py-4 gap-4"
-                 style="grid-template-columns: 130px 90px 90px 110px 100px 120px;">
-
-                {{-- Nama Hari --}}
-                <div class="flex items-center gap-3">
-
-                    <span class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-                        {{ $j->is_buka ? 'bg-[#EAB308]/15 text-[#EAB308]' : 'bg-gray-800 text-gray-500' }}">
-
-                        {{ strtoupper(substr($j->nama_hari, 0, 2)) }}
-
-                    </span>
-
-                    <span class="text-sm font-semibold
-                        {{ $j->is_buka ? 'text-white' : 'text-gray-500' }}">
-
-                        {{ $j->nama_hari }}
-
-                    </span>
-
-                </div>
-
-                {{-- Status --}}
-                <div>
-
-                    <select name="is_buka"
-                            class="input-time w-full">
-
-                        <option value="1"
-                            {{ $j->is_buka ? 'selected' : '' }}>
-                            Buka
-                        </option>
-
-                        <option value="0"
-                            {{ !$j->is_buka ? 'selected' : '' }}>
-                            Tutup
-                        </option>
-
-                    </select>
-
-                </div>
-
-                {{-- Jam Buka --}}
-                <div>
-
-                    <input type="time"
-                           name="jam_buka"
-                           value="{{ \Carbon\Carbon::parse($j->jam_buka)->format('H:i') }}"
-                           class="input-time w-full">
-
-                </div>
-
-                {{-- Jam Tutup --}}
-                <div>
-
-                    <input type="time"
-                           name="jam_tutup"
-                           value="{{ \Carbon\Carbon::parse($j->jam_tutup)->format('H:i') }}"
-                           class="input-time w-full">
-
-                </div>
-
-                {{-- Slot --}}
-                <div>
-
-                    @php
-                        $buka = \Carbon\Carbon::parse($j->jam_buka);
-                        $tutup = \Carbon\Carbon::parse($j->jam_tutup);
-
-                        $slots = floor(
-                            $buka->diffInMinutes($tutup) / 45
-                        );
-                    @endphp
-
-                    @if($j->is_buka)
-
-                        <span class="text-[#EAB308] text-sm font-semibold">
-                            {{ $slots }}
-                        </span>
-
-                        <span class="text-gray-500 text-xs">
-                            slot
-                        </span>
-
-                    @else
-
-                        <span class="text-gray-600 text-xs">
-                            —
-                        </span>
-
-                    @endif
-
-                </div>
-
-                {{-- Tombol --}}
-                <div class="flex items-center gap-3">
-
-                    @if($j->is_buka)
-
-                        <span class="badge-buka px-2.5 py-1 rounded-full text-xs font-semibold">
-                            Buka
-                        </span>
-
-                    @else
-
-                        <span class="badge-tutup px-2.5 py-1 rounded-full text-xs font-semibold">
-                            Tutup
-                        </span>
-
-                    @endif
-
-                    <button type="submit"
-                            class="save-btn">
-
-                        Simpan
-
-                    </button>
-
-                </div>
-
+            {{-- ───────────────── INFO BANNER ───────────────── --}}
+            <div class="mb-6 flex items-start gap-3 px-5 py-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2" class="shrink-0 mt-0.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p class="text-yellow-200/70 text-xs leading-relaxed">
+                    Admin dapat mengubah jadwal operasional dan status buka/tutup barbershop secara langsung.
+                </p>
             </div>
 
-        </form>
+            {{-- ───────────────── JADWAL CARD ───────────────── --}}
+            <div class="stat-card overflow-hidden">
+
+                {{-- Card Header --}}
+                <div class="px-6 py-5 border-b border-gray-800 flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(234,179,8,0.15);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EAB308" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <path d="M16 2v4M8 2v4M3 10h18"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold text-sm">Jadwal Operasional</p>
+                        <p class="text-gray-500 text-xs">Edit jadwal operasional barbershop</p>
+                    </div>
+                </div>
+
+                {{-- Table Header --}}
+                <div class="grid px-6 py-3 border-b border-gray-800/60 text-xs font-semibold uppercase tracking-wider text-gray-500"
+                     style="grid-template-columns: 130px 90px 90px 110px 100px 120px;">
+                    <span>Hari</span>
+                    <span>Status</span>
+                    <span>Jam Buka</span>
+                    <span>Jam Tutup</span>
+                    <span>Slot</span>
+                    <span>Aksi</span>
+                </div>
+
+                {{-- Rows --}}
+                @foreach($jadwal as $j)
+                <div class="jadwal-row border-b border-gray-800/40 last:border-0">
+                    <form class="jadwal-form" action="{{ route('admin.jadwal.update', $j->id) }}" method="POST" data-id="{{ $j->id }}">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="grid items-center px-6 py-4 gap-4" style="grid-template-columns: 130px 90px 90px 110px 100px 120px;">
+
+                            {{-- Nama Hari --}}
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {{ $j->is_buka ? 'bg-[#EAB308]/15 text-[#EAB308]' : 'bg-gray-800 text-gray-500' }}">
+                                    {{ strtoupper(substr($j->nama_hari, 0, 2)) }}
+                                </span>
+                                <span class="text-sm font-semibold {{ $j->is_buka ? 'text-white' : 'text-gray-500' }}">
+                                    {{ $j->nama_hari }}
+                                </span>
+                            </div>
+
+                            {{-- Status --}}
+                            <div>
+                                <select name="is_buka" class="input-time w-full">
+                                    <option value="1" {{ $j->is_buka ? 'selected' : '' }}>Buka</option>
+                                    <option value="0" {{ !$j->is_buka ? 'selected' : '' }}>Tutup</option>
+                                </select>
+                            </div>
+
+                            {{-- Jam Buka --}}
+                            <div>
+                                <input type="time" name="jam_buka" value="{{ \Carbon\Carbon::parse($j->jam_buka)->format('H:i') }}" class="input-time w-full">
+                            </div>
+
+                            {{-- Jam Tutup --}}
+                            <div>
+                                <input type="time" name="jam_tutup" value="{{ \Carbon\Carbon::parse($j->jam_tutup)->format('H:i') }}" class="input-time w-full">
+                            </div>
+
+                            {{-- Slot --}}
+                            <div>
+                                @php
+                                    $buka = \Carbon\Carbon::parse($j->jam_buka);
+                                    $tutup = \Carbon\Carbon::parse($j->jam_tutup);
+                                    $slots = floor($buka->diffInMinutes($tutup) / 45);
+                                @endphp
+
+                                @if($j->is_buka)
+                                    <span class="text-[#EAB308] text-sm font-semibold">{{ $slots }}</span>
+                                    <span class="text-gray-500 text-xs">slot</span>
+                                @else
+                                    <span class="text-gray-600 text-xs">—</span>
+                                @endif
+                            </div>
+
+                            {{-- Tombol --}}
+                            <div class="flex items-center gap-3">
+                                @if($j->is_buka)
+                                    <span class="badge-buka px-2.5 py-1 rounded-full text-xs font-semibold">Buka</span>
+                                @else
+                                    <span class="badge-tutup px-2.5 py-1 rounded-full text-xs font-semibold">Tutup</span>
+                                @endif
+
+                                <button type="submit" class="save-btn">Simpan</button>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+                @endforeach
+
+            </div>
+        </div>
+    </main>
+</div>
+
+{{-- ───────────────── MODAL PERINGATAN KONFLIK JADWAL (BARU) ───────────────── --}}
+@if(session('conflict_data'))
+<div id="conflictModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+    <div class="w-full max-w-md rounded-2xl p-6 shadow-2xl border border-red-500/30 text-white transform scale-100 transition-transform duration-300" style="background: #111111;">
+        
+        {{-- Header Modal --}}
+        <div class="flex items-start gap-3.5 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 shrink-0 border border-red-500/20">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-white font-display tracking-wide">Peringatan Konflik Jadwal</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Perubahan memengaruhi reservasi yang sudah ada.</p>
+            </div>
+        </div>
+
+        {{-- Body Modal --}}
+        <div class="space-y-4">
+            <p class="text-gray-300 text-xs leading-relaxed">
+                {{ session('conflict_message') }} Reservasi di bawah ini akan berada di luar jam operasional baru Anda:
+            </p>
+
+            {{-- List Pelanggan yang Bentrok --}}
+            <{{-- List Pelanggan yang Bentrok --}}
+<div class="max-h-40 overflow-y-auto bg-black/40 border border-gray-800 rounded-xl p-3 space-y-2.5 custom-scrollbar">
+    @foreach(session('conflict_data') as $booking)
+        <div class="flex items-center justify-between text-xs border-b border-gray-800/50 pb-2 last:border-0 last:pb-0">
+            <div>
+                <!-- Menggunakan data_get() agar aman dari error array/object -->
+                <p class="font-semibold text-gray-200">{{ data_get($booking, 'nama') }}</p>
+                <p class="text-[10px] text-gray-500 mt-0.5">
+                    📅 {{ \Carbon\Carbon::parse(data_get($booking, 'tanggal'))->translatedFormat('d M Y') }}
+                </p>
+            </div>
+            <div class="px-2 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-md font-mono font-medium">
+                ⏰ {{ date('H:i', strtotime(data_get($booking, 'jam'))) }}
+            </div>
+        </div>
+    @endforeach
+</div>
+            <p class="text-yellow-400/90 text-xs font-medium">
+                Apakah Anda yakin ingin mengabaikan konflik dan tetap menyimpan jadwal baru ini?
+            </p>
+        </div>
+
+        {{-- Footer Modal / Tombol Aksi --}}
+        <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-800/60">
+            <button type="button" onclick="closeConflictModal()" class="px-4 py-2 text-xs font-semibold text-gray-400 hover:text-white bg-gray-800/50 hover:bg-gray-800 rounded-lg transition-all duration-200">
+                Batal
+            </button>
+
+            {{-- Form Submit Paksa (Force Update) --}}
+            <form action="{{ route('admin.jadwal.update', session('current_jadwal_id')) }}" method="POST" class="m-0">
+                @csrf
+                @method('PUT')
+                
+                {{-- Membawa kembali inputan lama --}}
+                <input type="hidden" name="jam_buka" value="{{ old('jam_buka') }}">
+                <input type="hidden" name="jam_tutup" value="{{ old('jam_tutup') }}">
+                <input type="hidden" name="is_buka" value="{{ old('is_buka') }}">
+                
+                {{-- Flag bypass pengecekan --}}
+                <input type="hidden" name="force_update" value="1">
+
+                <button type="submit" class="px-4 py-2 text-xs font-bold text-black bg-[#EAB308] hover:bg-[#ca8a04] rounded-lg transition-all duration-200 shadow-lg shadow-yellow-500/10 hover:scale-[1.02]">
+                    Ya, Tetap Simpan
+                </button>
+            </form>
+        </div>
 
     </div>
-
-    @endforeach
-
 </div>
+
+<script>
+    function closeConflictModal() {
+        const modal = document.getElementById('conflictModal');
+        if (modal) {
+            modal.style.opacity = '0';
+            modal.style.transition = 'opacity 0.2s ease';
+            setTimeout(() => modal.remove(), 200);
+        }
+    }
+</script>
+@endif
+
+</body>
+</html>
